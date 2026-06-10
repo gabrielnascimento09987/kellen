@@ -172,12 +172,9 @@ function startGame() {
   resetBall();
   updateUI();
   launchText.style.display = 'block';
-
-  // Auto-lança depois de 3s se o jogador não clicar
   autoLaunchTimer = setTimeout(() => {
     if (game &&!game.ball.launched) launchBall();
   }, 3000);
-
   loop();
 }
 
@@ -246,11 +243,9 @@ function gameOver() {
 function update() {
   if (!game ||!game.running) return;
 
-  // Paddle
   if (leftPressed) game.paddle.x = Math.max(0, game.paddle.x - game.paddle.speed);
   if (rightPressed) game.paddle.x = Math.min(c.width - game.paddle.w, game.paddle.x + game.paddle.speed);
 
-  // Ball
   if (!game.ball.launched) {
     game.ball.x = game.paddle.x + game.paddle.w / 2;
     game.ball.y = game.paddle.y - game.ball.r - 2;
@@ -258,15 +253,15 @@ function update() {
     game.ball.x += game.ball.vx;
     game.ball.y += game.ball.vy;
 
-    // Walls
     if (game.ball.x - game.ball.r <= 0 || game.ball.x + game.ball.r >= c.width) {
       game.ball.vx *= -1;
+      game.ball.x = Math.max(game.ball.r, Math.min(c.width - game.ball.r, game.ball.x));
     }
     if (game.ball.y - game.ball.r <= 0) {
       game.ball.vy *= -1;
+      game.ball.y = game.ball.r;
     }
 
-    // Paddle collision
     if (game.ball.y + game.ball.r >= game.paddle.y &&
         game.ball.x >= game.paddle.x &&
         game.ball.x <= game.paddle.x + game.paddle.w &&
@@ -276,9 +271,9 @@ function update() {
       const speed = game.ball.speed + game.level * 0.2;
       game.ball.vx = speed * Math.sin(angle);
       game.ball.vy = -speed * Math.cos(angle);
+      game.ball.y = game.paddle.y - game.ball.r - 1;
     }
 
-    // Bottom
     if (game.ball.y - game.ball.r > c.height) {
       game.lives--;
       updateUI();
@@ -289,7 +284,6 @@ function update() {
       resetBall();
     }
 
-    // Bricks
     for (let i = 0; i < game.bricks.length; i++) {
       const b = game.bricks[i];
       if (!b.alive) continue;
@@ -302,15 +296,29 @@ function update() {
         updateUI();
         createParticles(b.x + b.w / 2, b.y + b.h / 2, b.color);
 
-        const dx = game.ball.x - (b.x + b.w / 2);
-        const dy = game.ball.y - (b.y + b.h / 2);
-        if (Math.abs(dx) > Math.abs(dy)) game.ball.vx *= -1;
-        else game.ball.vy *= -1;
+        const overlapLeft = (game.ball.x + game.ball.r) - b.x;
+        const overlapRight = (b.x + b.w) - (game.ball.x - game.ball.r);
+        const overlapTop = (game.ball.y + game.ball.r) - b.y;
+        const overlapBottom = (b.y + b.h) - (game.ball.y - game.ball.r);
+        const minOverlap = Math.min(overlapLeft, overlapRight, overlapTop, overlapBottom);
+
+        if (minOverlap === overlapLeft) {
+          game.ball.vx = -Math.abs(game.ball.vx);
+          game.ball.x = b.x - game.ball.r - 1;
+        } else if (minOverlap === overlapRight) {
+          game.ball.vx = Math.abs(game.ball.vx);
+          game.ball.x = b.x + b.w + game.ball.r + 1;
+        } else if (minOverlap === overlapTop) {
+          game.ball.vy = -Math.abs(game.ball.vy);
+          game.ball.y = b.y - game.ball.r - 1;
+        } else {
+          game.ball.vy = Math.abs(game.ball.vy);
+          game.ball.y = b.y + b.h + game.ball.r + 1;
+        }
         break;
       }
     }
 
-    // Check win
     if (game.bricks.every(b =>!b.alive)) {
       game.level++;
       game.ball.speed += 0.3;
@@ -320,7 +328,6 @@ function update() {
     }
   }
 
-  // Particles
   game.particles = game.particles.filter(p => {
     p.x += p.vx;
     p.y += p.vy;
@@ -330,11 +337,9 @@ function update() {
 }
 
 function draw() {
-  // Background
   ctx.fillStyle = '#000';
   ctx.fillRect(0, 0, c.width, c.height);
 
-  // Grid
   ctx.strokeStyle = 'rgba(0,255,255,0.1)';
   ctx.lineWidth = 1;
   for (let i = 0; i < c.width; i += 20) {
@@ -352,7 +357,6 @@ function draw() {
 
   if (!game) return;
 
-  // Bricks
   game.bricks.forEach(b => {
     if (!b.alive) return;
     ctx.fillStyle = b.color;
@@ -362,13 +366,11 @@ function draw() {
     ctx.shadowBlur = 0;
   });
 
-  // Paddle
   ctx.fillStyle = '#0ff';
   ctx.shadowColor = '#0ff';
   ctx.shadowBlur = 20;
   ctx.fillRect(game.paddle.x, game.paddle.y, game.paddle.w, game.paddle.h);
 
-  // Ball
   ctx.beginPath();
   ctx.arc(game.ball.x, game.ball.y, game.ball.r, 0, Math.PI * 2);
   ctx.fillStyle = '#fff';
@@ -376,7 +378,6 @@ function draw() {
   ctx.shadowBlur = 20;
   ctx.fill();
 
-  // Particles
   game.particles.forEach(p => {
     ctx.fillStyle = p.color;
     ctx.globalAlpha = p.life / 20;

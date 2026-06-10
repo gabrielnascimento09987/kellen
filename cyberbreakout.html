@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>GRID BREACHER v3.1</title>
+<title>GRID BREACHER v3.2</title>
 <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
@@ -98,7 +98,7 @@
     60% { text-shadow: 0 0 25px #00ffea, 0 0 50px #ff0080; transform: translate(0); }
   }
   #controls { position: absolute; bottom: 0; width: 100%; height: 65px; display: none; z-index: 15; padding: 8px; }
-.control-btn { position: absolute; width: 90px; height: 40px; border: 1px solid #00ffea; background: rgba(0,255,234,0.1); box-shadow: 0 0 10px #00ffea; display: flex; align-items: center; justify-content: center; font-size: 16px; bottom: 10px; color: #00ffea; }
+.control-btn { position: absolute; width: 90px; height: 40px; border: 1px solid #00ffea; background: rgba(0,255,234,0.1); box-shadow: 0 0 10px #00ffea; display: flex; align-items: center; justify-content: center; font-size: 16px; bottom: 10px; color: #00ffea; user-select: none; }
 .control-btn:active { background: rgba(0,255,234,0.3); transform: scale(0.95); }
   #leftBtn { left: 15px; }
   #rightBtn { right: 15px; }
@@ -130,7 +130,7 @@
   </div>
 
   <div id="startScreen">
-    <div class="title">GRID BREACHER v3.1</div>
+    <div class="title">GRID BREACHER v3.2</div>
     <div class="subtitle">> TOQUE EM JACK IN PRA COMEÇAR</div>
     <div class="subtitle">> 5 FIREWALLS + MAINFRAME</div>
     <div class="subtitle">> COMBO SYSTEM ONLINE</div>
@@ -191,7 +191,7 @@ function startMusic() {
   let step = 0;
 
   function playStep() {
-    if (!musicPlaying) return;
+    if (!musicPlaying ||!audioCtx) return;
     const bass = audioCtx.createOscillator();
     const bassGain = audioCtx.createGain();
     bass.type = 'sawtooth';
@@ -288,7 +288,7 @@ const levels = [
   { rows: 6, cols: 10, speed: 7, pattern: 'checker' },
   { rows: 0, cols: 0, speed: 8, boss: true }
 ];
-let stars = [], rain = [];
+let stars = [], rain = [], animationId = null;
 
 function createStars() {
   stars = [];
@@ -322,7 +322,7 @@ document.addEventListener('keydown', e => {
     return;
   }
   if (game.keys) game.keys[e.key.toLowerCase()] = true;
-  if(e.code === 'Space' && game.balls && game.balls.length === 1 &&!game.balls[0].launched) game.balls[0].launched = true;
+  if(e.code === 'Space' && game.balls && game.balls.length === 1 &&!game.balls[0].launched && game.running &&!game.paused) game.balls[0].launched = true;
 });
 document.addEventListener('keyup', e => { if (game.keys) game.keys[e.key.toLowerCase()] = false; });
 
@@ -330,6 +330,7 @@ function togglePause() {
   if (!game.running) return;
   game.paused =!game.paused;
   pauseScreen.style.display = game.paused? 'flex' : 'none';
+  if (!game.paused) loop();
 }
 
 document.getElementById('leftBtn').addEventListener('touchstart', e => { e.preventDefault(); if(game.touchLeft!== undefined) game.touchLeft = true; });
@@ -350,7 +351,6 @@ canvas.addEventListener('click', () => {
   if (game.balls && game.balls.length === 1 &&!game.balls[0].launched && game.running &&!game.paused) game.balls[0].launched = true;
 });
 
-// Botões corrigidos
 document.getElementById('startBtn').addEventListener('click', startGame);
 document.getElementById('resumeBtn').addEventListener('click', togglePause);
 document.getElementById('rebootBtn').addEventListener('click', startGame);
@@ -419,7 +419,8 @@ function startGame() {
     bricks: [],
     keys: {}, touchLeft: false, touchRight: false,
     particles: [], powerups: [], lasers: [],
-    boss: null, combo: 0, comboTimer: 0
+    boss: null, combo: 0, comboTimer: 0,
+    loopStarted: true
   };
   createBricks();
   startScreen.style.display = 'none';
@@ -427,10 +428,8 @@ function startGame() {
   pauseScreen.style.display = 'none';
   controls.style.display = 'block';
   updateUI();
-  if (!game.loopStarted) {
-    game.loopStarted = true;
-    loop();
-  }
+  cancelAnimationFrame(animationId);
+  loop();
 }
 
 function updateUI() {
@@ -660,11 +659,4 @@ function update() {
         game.boss.dead = true;
         bossHp.style.display = 'none';
         game.score += 1000;
-        createParticles(game.boss.x + game.boss.w/2, game.boss.y + game.boss.h/2, '#ff0080', 80);
-        nextLevel();
-      }
-    }
-    return l.y > 0;
-  });
-
-  game.power
+        createParticles(game.boss.x + game.boss

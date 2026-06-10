@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>CYBER BREAKER v2.0</title>
+<title>CYBER BREAKER NEO</title>
 <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
-    background: #0a0015;
-    font-family: 'Courier New', monospace;
-    color: #0ff;
+    background: #000;
+    font-family: 'Inter', 'Segoe UI', sans-serif;
+    color: #fff;
     overflow: hidden;
     display: flex;
     justify-content: center;
@@ -20,107 +20,160 @@
   #game {
     position: relative;
     width: 100%;
-    max-width: 400px;
-    height: 600px;
+    max-width: 420px;
+    height: 640px;
     background: #000;
-    border: 2px solid #0ff;
-    box-shadow: 0 0 30px #0ff, inset 0 0 20px #0ff33;
+    border-radius: 20px;
     overflow: hidden;
+    box-shadow: 0 0 60px rgba(0, 255, 255, 0.4), 0 0 120px rgba(255, 0, 255, 0.2);
   }
-  #game::after {
+  #bg {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: url('https://images.unsplash.com/photo-1519608487953-e999c86e7455?q=80&w=2070') center/cover;
+    filter: brightness(0.35) saturate(1.8) blur(1px);
+    transform: scale(1.05);
+    z-index: 0;
+  }
+  #bg::after {
     content: '';
     position: absolute;
     top: 0; left: 0; width: 100%; height: 100%;
-    background: repeating-linear-gradient(0deg, rgba(0,0,0,0.15), rgba(0,0,0,0.15) 1px, transparent 1px, transparent 3px);
-    pointer-events: none;
-    z-index: 5;
+    background: linear-gradient(180deg, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.1) 35%, rgba(0,0,0,0.1) 65%, rgba(0,0,0,0.9) 100%);
   }
-  #glitch {
-    position: absolute;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: transparent;
-    pointer-events: none;
-    z-index: 6;
-    opacity: 0;
+  canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    position: relative;
+    z-index: 2;
   }
- .glitchActive { animation: glitchAnim 0.2s; }
-  @keyframes glitchAnim {
-    0%, 100% { opacity: 0; }
-    25% { opacity: 1; background: linear-gradient(90deg, transparent 0%, rgba(255,0,255,0.3) 50%, transparent 100%); transform: translateX(-4px); }
-    50% { opacity: 1; background: linear-gradient(90deg, transparent 0%, rgba(0,255,255,0.3) 50%, transparent 100%); transform: translateX(4px); }
-  }
-  canvas { display: block; width: 100%; height: 100%; position: relative; z-index: 2; }
   #ui {
-    position: absolute; top: 5px; left: 5px; right: 5px;
-    display: flex; justify-content: space-between;
-    font-size: 12px; z-index: 10; pointer-events: none;
-    text-shadow: 0 0 8px #0ff;
+    position: absolute; top: 15px; left: 15px; right: 15px;
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 13px; font-weight: 600; z-index: 10; pointer-events: none;
+    letter-spacing: 1px;
   }
-  #ui span { color: #f0f; text-shadow: 0 0 8px #f0f; }
+.ui-card {
+    background: rgba(255,255,255,0.08);
+    backdrop-filter: blur(12px);
+    padding: 6px 12px;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+.ui-card span {
+    background: linear-gradient(90deg, #00ffff, #ff00ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 700;
+  }
   #bossHp {
-    position: absolute; top: 28px; left: 50%; transform: translateX(-50%);
-    width: 180px; height: 6px; border: 1px solid #f0f; display: none;
-    z-index: 10; box-shadow: 0 0 10px #f0f;
+    position: absolute; top: 55px; left: 50%; transform: translateX(-50%);
+    width: 200px; height: 8px; display: none;
+    background: rgba(255,255,255,0.1);
+    border-radius: 10px;
+    overflow: hidden;
+    z-index: 10;
+    backdrop-filter: blur(10px);
   }
-  #bossHpBar { height: 100%; background: linear-gradient(90deg, #f0f, #f80); }
+  #bossHpBar {
+    height: 100%;
+    background: linear-gradient(90deg, #ff00ff, #00ffff);
+    box-shadow: 0 0 15px #ff00ff;
+    transition: width 0.2s;
+  }
   #menu {
     position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.95);
+    background: rgba(0,0,0,0.85);
+    backdrop-filter: blur(20px);
     display: flex; flex-direction: column; justify-content: center; align-items: center;
     z-index: 20; text-align: center;
   }
 .title {
-    font-size: 28px; color: #fff;
-    text-shadow: 0 0 20px #0ff, 0 0 40px #f0f;
-    margin-bottom: 15px; animation: flicker 2s infinite;
+    font-size: 42px;
+    font-weight: 800;
+    background: linear-gradient(90deg, #00ffff, #ff00ff, #00ffff);
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: gradientMove 3s infinite;
+    margin-bottom: 8px;
+    letter-spacing: -1px;
   }
-  @keyframes flicker {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.8; text-shadow: 0 0 20px #f0f, 0 0 40px #0ff; }
+  @keyframes gradientMove {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
   }
-.subtitle { font-size: 10px; color: #0ff; margin: 3px 0; }
+.subtitle {
+    font-size: 11px;
+    color: rgba(255,255,255,0.6);
+    margin: 4px 0;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
   button {
-    background: #000; border: 2px solid #0ff; color: #0ff;
-    padding: 8px 25px; font-family: monospace;
-    font-size: 12px; cursor: pointer; margin-top: 15px;
-    box-shadow: 0 0 15px #0ff;
+    background: rgba(0,255,255,0.1);
+    border: 1px solid rgba(0,255,255,0.5);
+    color: #fff;
+    padding: 12px 32px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 25px;
+    border-radius: 12px;
+    backdrop-filter: blur(10px);
+    transition: all 0.2s;
+    letter-spacing: 1px;
   }
-  button:active { background: #0ff; color: #000; }
+  button:hover {
+    background: rgba(0,255,255,0.2);
+    box-shadow: 0 0 20px rgba(0,255,255,0.4);
+    transform: translateY(-2px);
+  }
+  button:active { transform: translateY(0); }
   #controls {
-    position: absolute; bottom: 0; width: 100%; height: 60px;
+    position: absolute; bottom: 0; width: 100%; height: 70px;
     display: none; z-index: 15;
   }
 .btn {
-    position: absolute; width: 80px; height: 40px;
-    border: 1px solid #0ff; background: rgba(0,255,255,0.1);
-    bottom: 10px; display: flex; align-items: center; justify-content: center;
-    font-size: 18px; user-select: none;
+    position: absolute; width: 90px; height: 45px;
+    background: rgba(255,255,255,0.08);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 12px;
+    bottom: 15px; display: flex; align-items: center; justify-content: center;
+    font-size: 20px; user-select: none; color: #fff;
+    transition: all 0.1s;
   }
-.btn:active { background: rgba(0,255,255,0.3); }
-  #left { left: 15px; }
-  #right { right: 15px; }
+.btn:active {
+    background: rgba(0,255,255,0.2);
+    transform: scale(0.95);
+  }
+  #left { left: 20px; }
+  #right { right: 20px; }
   #mute {
-    position: absolute; top: 5px; right: 5px; z-index: 15;
-    background: #000; border: 1px solid #0ff; color: #0ff;
-    width: 25px; height: 25px; font-size: 12px; cursor: pointer;
-  }
- .shake { animation: shake 0.2s; }
-  @keyframes shake {
-    0%, 100% { transform: translateX(0); }
-    25% { transform: translateX(-5px); }
-    75% { transform: translateX(5px); }
+    position: absolute; top: 15px; right: 15px; z-index: 15;
+    background: rgba(255,255,255,0.08);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: #fff;
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    font-size: 14px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
   }
 </style>
 </head>
 <body>
 <div id="game">
-  <div id="glitch"></div>
+  <div id="bg"></div>
   <canvas id="c"></canvas>
   <button id="mute">♪</button>
   <div id="ui">
-    <div>SCORE:<span id="s">0</span></div>
-    <div>LIVES:<span id="l">3</span></div>
-    <div>LVL:<span id="lv">1</span>/5</div>
+    <div class="ui-card">SCORE <span id="s">0</span></div>
+    <div class="ui-card">LIVES <span id="l">3</span></div>
+    <div class="ui-card">LEVEL <span id="lv">1</span>/5</div>
   </div>
   <div id="bossHp"><div id="bossHpBar"></div></div>
   <div id="controls">
@@ -129,10 +182,9 @@
   </div>
   <div id="menu">
     <div class="title">CYBER BREAKER</div>
-    <div class="subtitle">> TOQUE/ESPAÇO PRA LANÇAR</div>
-    <div class="subtitle">> PEQUE [L] PRA LASER</div>
-    <div class="subtitle">> BOSS NO LEVEL 5</div>
-    <button id="start">JACK IN</button>
+    <div class="subtitle">Neo Protocol v3.0</div>
+    <div class="subtitle">Collect L for Laser</div>
+    <button id="start">ENTER</button>
   </div>
 </div>
 
@@ -146,12 +198,10 @@ const menu = document.getElementById('menu');
 const controls = document.getElementById('controls');
 const bossHp = document.getElementById('bossHp');
 const bossHpBar = document.getElementById('bossHpBar');
-const gameDiv = document.getElementById('game');
-const glitchEl = document.getElementById('glitch');
 const muteBtn = document.getElementById('mute');
 
-c.width = 400;
-c.height = 600;
+c.width = 420;
+c.height = 640;
 
 let game = null;
 let leftPressed = false, rightPressed = false;
@@ -167,13 +217,13 @@ function initAudio() {
   if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
 }
 
-function beep(freq, dur, vol = 0.2) {
+function beep(freq, dur, vol = 0.15, type = 'sine') {
   if (!audioCtx || isMuted) return;
   const osc = audioCtx.createOscillator();
   const gain = audioCtx.createGain();
   osc.connect(gain);
   gain.connect(audioCtx.destination);
-  osc.type = 'square';
+  osc.type = type;
   osc.frequency.value = freq;
   gain.gain.setValueAtTime(vol, audioCtx.currentTime);
   gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + dur);
@@ -181,19 +231,11 @@ function beep(freq, dur, vol = 0.2) {
   osc.stop(audioCtx.currentTime + dur);
 }
 
-function playHit() { beep(200, 0.03); }
-function playBreak() { beep(150, 0.05); setTimeout(() => beep(100, 0.05), 30); }
-function playDamage() {
-  beep(80, 0.2, 0.3);
-  gameDiv.classList.add('shake');
-  glitchEl.classList.add('glitchActive');
-  setTimeout(() => {
-    gameDiv.classList.remove('shake');
-    glitchEl.classList.remove('glitchActive');
-  }, 200);
-}
-function playLaser() { beep(800, 0.04, 0.15); }
-function playPowerUp() { beep(400, 0.08); setTimeout(() => beep(600, 0.08), 80); }
+function playHit() { beep(300, 0.03); }
+function playBreak() { beep(200, 0.05); }
+function playDamage() { beep(100, 0.15, 0.2, 'sawtooth'); }
+function playLaser() { beep(600, 0.05, 0.1); }
+function playPowerUp() { beep(400, 0.1); setTimeout(() => beep(600, 0.1), 60); }
 
 muteBtn.onclick = () => {
   initAudio();
@@ -235,8 +277,8 @@ c.addEventListener('touchmove', e => {
 function launch() {
   if (game &&!game.ball.launched) {
     game.ball.launched = true;
-    game.ball.vx = 4 * (Math.random() > 0.5? 1 : -1);
-    game.ball.vy = -4;
+    game.ball.vx = 4.5 * (Math.random() > 0.5? 1 : -1);
+    game.ball.vy = -4.5;
     if (autoLaunchTimer) clearTimeout(autoLaunchTimer);
   }
 }
@@ -247,8 +289,8 @@ function startGame() {
     lives: 3,
     level: 1,
     running: true,
-    paddle: { x: 160, y: 560, w: 80, h: 10, speed: 6 },
-    ball: { x: 200, y: 300, r: 5, vx: 0, vy: 0, launched: false },
+    paddle: { x: 165, y: 580, w: 90, h: 12, speed: 7 },
+    ball: { x: 210, y: 300, r: 6, vx: 0, vy: 0, launched: false, trail: [] },
     bricks: [],
     powerups: [],
     lasers: [],
@@ -268,21 +310,23 @@ function createLevel() {
   bossHp.style.display = 'none';
 
   if (game.level === 5) {
-    game.boss = { x: 100, y: 80, w: 200, h: 40, hp: 15, maxHp: 15, dir: 1, alive: true };
+    game.boss = { x: 110, y: 100, w: 200, h: 50, hp: 15, maxHp: 15, dir: 1, alive: true };
     bossHp.style.display = 'block';
     updateBossHp();
     return;
   }
 
   const rows = 4 + game.level;
+  const colors = ['#00ffff', '#ff00ff', '#00ff88', '#ff8800', '#8800ff'];
   for (let r = 0; r < rows; r++) {
     for (let col = 0; col < 10; col++) {
       game.bricks.push({
-        x: 5 + col * 39,
-        y: 50 + r * 20,
-        w: 35,
-        h: 15,
-        alive: true
+        x: 10 + col * 40,
+        y: 70 + r * 22,
+        w: 36,
+        h: 18,
+        alive: true,
+        color: colors[r % colors.length]
       });
     }
   }
@@ -306,13 +350,14 @@ function resetBall() {
   game.ball.vx = 0;
   game.ball.vy = 0;
   game.ball.launched = false;
+  game.ball.trail = [];
   if (autoLaunchTimer) clearTimeout(autoLaunchTimer);
   autoLaunchTimer = setTimeout(() => { if (game &&!game.ball.launched) launch(); }, 3000);
 }
 
 function spawnPowerUp(x, y) {
-  if (Math.random() < 0.12) {
-    game.powerups.push({ x, y, type: 'L', vy: 2, w: 20, h: 10 });
+  if (Math.random() < 0.15) {
+    game.powerups.push({ x, y, type: 'L', vy: 2.5, w: 24, h: 12 });
   }
 }
 
@@ -321,15 +366,28 @@ function fireLaser() {
     setTimeout(() => {
       if (game) {
         game.lasers.push({
-          x: game.paddle.x + game.paddle.w / 2 + (i - 1) * 15,
+          x: game.paddle.x + game.paddle.w / 2 + (i - 1) * 18,
           y: game.paddle.y,
-          vy: -10,
-          w: 2,
-          h: 10
+          vy: -12,
+          w: 3,
+          h: 15
         });
         playLaser();
       }
-    }, i * 80);
+    }, i * 60);
+  }
+}
+
+function createParticles(x, y, color, count = 8) {
+  for (let i = 0; i < count; i++) {
+    game.particles.push({
+      x, y,
+      vx: (Math.random() - 0.5) * 5,
+      vy: (Math.random() - 0.5) * 5,
+      life: 30,
+      color,
+      size: Math.random() * 3 + 1
+    });
   }
 }
 
@@ -339,7 +397,7 @@ function gameOver(victory) {
   bossHp.style.display = 'none';
   setTimeout(() => {
     menu.style.display = 'flex';
-    menu.querySelector('.title').textContent = victory? 'WINNER!' : 'GAME OVER';
+    menu.querySelector('.title').textContent = victory? 'VICTORY' : 'GAME OVER';
     menu.querySelector('.subtitle').textContent = `FINAL SCORE: ${game.score}`;
   }, 300);
 }
@@ -354,6 +412,9 @@ function update() {
     game.ball.x = game.paddle.x + game.paddle.w / 2;
     game.ball.y = game.paddle.y - game.ball.r - 2;
   } else {
+    game.ball.trail.push({ x: game.ball.x, y: game.ball.y });
+    if (game.ball.trail.length > 8) game.ball.trail.shift();
+
     game.ball.x += game.ball.vx;
     game.ball.y += game.ball.vy;
 
@@ -378,8 +439,8 @@ function update() {
         game.ball.x <= game.paddle.x + game.paddle.w &&
         game.ball.vy > 0) {
       const hitPos = (game.ball.x - game.paddle.x) / game.paddle.w;
-      const angle = (hitPos - 0.5) * 1.2;
-      const speed = 5 + game.level * 0.2;
+      const angle = (hitPos - 0.5) * 1.3;
+      const speed = 5.5 + game.level * 0.3;
       game.ball.vx = speed * Math.sin(angle);
       game.ball.vy = -speed * Math.cos(angle);
       game.ball.y = game.paddle.y - game.ball.r - 1;
@@ -398,7 +459,6 @@ function update() {
       return;
     }
 
-    // Bricks
     for (let i = 0; i < game.bricks.length; i++) {
       const b = game.bricks[i];
       if (!b.alive) continue;
@@ -410,12 +470,10 @@ function update() {
         game.score += 10;
         updateUI();
         playBreak();
-        glitchEl.classList.add('glitchActive');
-        setTimeout(() => glitchEl.classList.remove('glitchActive'), 200);
+        createParticles(b.x + b.w / 2, b.y + b.h / 2, b.color);
         spawnPowerUp(b.x + b.w / 2, b.y + b.h);
 
         const prevX = game.ball.x - game.ball.vx;
-        const prevY = game.ball.y - game.ball.vy;
         if (prevX + game.ball.r <= b.x || prevX - game.ball.r >= b.x + b.w) {
           game.ball.vx *= -1;
         } else {
@@ -427,10 +485,9 @@ function update() {
       }
     }
 
-    // Boss
     if (game.boss && game.boss.alive) {
-      game.boss.x += game.boss.dir * 2;
-      if (game.boss.x <= 0 || game.boss.x + game.boss.w >= c.width) game.boss.dir *= -1;
+      game.boss.x += game.boss.dir * 2.5;
+      if (game.boss.x <= 10 || game.boss.x + game.boss.w >= c.width - 10) game.boss.dir *= -1;
 
       if (game.ball.x + game.ball.r > game.boss.x &&
           game.ball.x - game.ball.r < game.boss.x + game.boss.w &&
@@ -441,8 +498,7 @@ function update() {
         updateUI();
         updateBossHp();
         playBreak();
-        glitchEl.classList.add('glitchActive');
-        setTimeout(() => glitchEl.classList.remove('glitchActive'), 200);
+        createParticles(game.ball.x, game.ball.y, '#ff00ff', 12);
         game.ball.vy *= -1;
         game.ball.y += game.ball.vy;
         if (game.boss.hp <= 0) {
@@ -450,12 +506,12 @@ function update() {
           bossHp.style.display = 'none';
           game.score += 500;
           updateUI();
+          createParticles(game.boss.x + game.boss.w / 2, game.boss.y + game.boss.h / 2, '#ff00ff', 30);
           gameOver(true);
         }
       }
     }
 
-    // Win normal levels
     if (game.level < 5 && game.bricks.every(b =>!b.alive)) {
       game.level++;
       updateUI();
@@ -464,7 +520,6 @@ function update() {
     }
   }
 
-  // Powerups
   game.powerups = game.powerups.filter(p => {
     p.y += p.vy;
     if (p.y > game.paddle.y &&
@@ -477,10 +532,8 @@ function update() {
     return p.y < c.height;
   });
 
-  // Lasers
   game.lasers = game.lasers.filter(l => {
     l.y += l.vy;
-    // Hit bricks
     for (let i = 0; i < game.bricks.length; i++) {
       const b = game.bricks[i];
       if (!b.alive) continue;
@@ -488,15 +541,16 @@ function update() {
         b.alive = false;
         game.score += 10;
         updateUI();
+        createParticles(b.x + b.w / 2, b.y + b.h / 2, b.color, 5);
         return false;
       }
     }
-    // Hit boss
     if (game.boss && game.boss.alive &&
         l.x > game.boss.x && l.x < game.boss.x + game.boss.w &&
         l.y > game.boss.y && l.y < game.boss.y + game.boss.h) {
       game.boss.hp--;
       updateBossHp();
+      createParticles(l.x, l.y, '#ff00ff', 6);
       if (game.boss.hp <= 0) {
         game.boss.alive = false;
         bossHp.style.display = 'none';
@@ -508,52 +562,102 @@ function update() {
     }
     return l.y > 0;
   });
+
+  game.particles = game.particles.filter(p => {
+    p.x += p.vx;
+    p.y += p.vy;
+    p.vx *= 0.98;
+    p.vy *= 0.98;
+    p.life--;
+    return p.life > 0;
+  });
 }
 
 function draw() {
-  ctx.fillStyle = '#000';
-  ctx.fillRect(0, 0, c.width, c.height);
+  ctx.clearRect(0, 0, c.width, c.height);
 
   if (!game) return;
 
   // Bricks
-  ctx.fillStyle = '#0ff';
   game.bricks.forEach(b => {
     if (!b.alive) return;
+    ctx.shadowColor = b.color;
+    ctx.shadowBlur = 15;
+    ctx.fillStyle = b.color + 'CC';
     ctx.fillRect(b.x, b.y, b.w, b.h);
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = 'rgba(255,255,255,0.3)';
+    ctx.fillRect(b.x, b.y, b.w, 2);
   });
 
   // Boss
   if (game.boss && game.boss.alive) {
-    ctx.fillStyle = '#f0f';
+    const grad = ctx.createLinearGradient(game.boss.x, game.boss.y, game.boss.x, game.boss.y + game.boss.h);
+    grad.addColorStop(0, '#ff00ff');
+    grad.addColorStop(1, '#8800ff');
+    ctx.shadowColor = '#ff00ff';
+    ctx.shadowBlur = 25;
+    ctx.fillStyle = grad;
     ctx.fillRect(game.boss.x, game.boss.y, game.boss.w, game.boss.h);
+    ctx.shadowBlur = 0;
   }
 
   // Powerups
-  ctx.fillStyle = '#ff0';
   game.powerups.forEach(p => {
+    ctx.fillStyle = 'rgba(255,255,0,0.3)';
+    ctx.shadowColor = '#ff0';
+    ctx.shadowBlur = 20;
     ctx.fillRect(p.x, p.y, p.w, p.h);
-    ctx.fillStyle = '#000';
-    ctx.font = '10px monospace';
-    ctx.fillText('L', p.x + 6, p.y + 8);
-    ctx.fillStyle = '#ff0';
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 10px sans-serif';
+    ctx.fillText('L', p.x + 8, p.y + 9);
   });
 
   // Lasers
-  ctx.fillStyle = '#f80';
+  ctx.shadowColor = '#ff8800';
+  ctx.shadowBlur = 10;
+  ctx.fillStyle = '#ff8800';
   game.lasers.forEach(l => {
     ctx.fillRect(l.x, l.y, l.w, l.h);
   });
+  ctx.shadowBlur = 0;
 
   // Paddle
-  ctx.fillStyle = '#0ff';
+  const paddleGrad = ctx.createLinearGradient(game.paddle.x, game.paddle.y, game.paddle.x, game.paddle.y + game.paddle.h);
+  paddleGrad.addColorStop(0, '#00ffff');
+  paddleGrad.addColorStop(1, '#0088ff');
+  ctx.shadowColor = '#00ffff';
+  ctx.shadowBlur = 20;
+  ctx.fillStyle = paddleGrad;
   ctx.fillRect(game.paddle.x, game.paddle.y, game.paddle.w, game.paddle.h);
+  ctx.shadowBlur = 0;
+
+  // Ball trail
+  game.ball.trail.forEach((pos, i) => {
+    const alpha = i / game.ball.trail.length * 0.5;
+    ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+    ctx.beginPath();
+    ctx.arc(pos.x, pos.y, game.ball.r * (i / game.ball.trail.length), 0, Math.PI * 2);
+    ctx.fill();
+  });
 
   // Ball
+  ctx.shadowColor = '#fff';
+  ctx.shadowBlur = 20;
   ctx.fillStyle = '#fff';
   ctx.beginPath();
   ctx.arc(game.ball.x, game.ball.y, game.ball.r, 0, Math.PI * 2);
   ctx.fill();
+  ctx.shadowBlur = 0;
+
+  // Particles
+  game.particles.forEach(p => {
+    ctx.fillStyle = p.color;
+    ctx.globalAlpha = p.life / 30;
+    ctx.fillRect(p.x, p.y, p.size, p.size);
+  });
+  ctx.globalAlpha = 1;
 }
 
 function loop() {

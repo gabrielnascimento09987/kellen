@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Breakout do Amor pra Kellen 💖</title>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #1a0a1f;
+    font-family: 'Comic Sans MS', 'Courier New', cursive;
+    color: #ff9ec7;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
+  #game {
+    position: relative;
+    width: 400px;
+    height: 600px;
+    border: 3px solid #ff9ec7;
+    border-radius: 20px;
+    box-shadow: 0 0 30px #ff9ec7, inset 0 0 30px #ff9ec780;
+    background: linear-gradient(180deg, #2d1b3d 0%, #1a0a1f 100%);
+    overflow: hidden;
+  }
+  #game::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: url('casal.jpg') center/cover;
+    opacity: 0.1;
+    z-index: 0;
+  }
+  canvas { position: absolute; top: 0; left: 0; z-index: 1; }
+  #ui { position: absolute; top: 15px; left: 15px; right: 15px; z-index: 10; text-shadow: 0 0 15px #ff9ec7; font-size: 18px; display: flex; justify-content: space-between; }
+  #muteBtn { position: absolute; top: 15px; right: 15px; z-index: 15; background: rgba(255,158,199,0.2); border: 2px solid #ff9ec7; border-radius: 50%; width: 40px; height: 40px; font-size: 18px; cursor: pointer; box-shadow: 0 0 15px #ff9ec7; }
+  #startScreen, #gameOverScreen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(26,10,31,0.95); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 20; text-align: center; padding: 20px; }
+ .title { font-size: 28px; margin-bottom: 15px; text-shadow: 0 0 25px #ff9ec7, 0 0 40px #ffaedc; animation: pulse 2s infinite; }
+ .subtitle { font-size: 14px; margin-bottom: 12px; color: #ffcce6; line-height: 1.5; }
+ .loveMsg { font-size: 20px; margin-top: 15px; color: #ffaedc; text-shadow: 0 0 20px #ff9ec7; }
+ .victoryImg { width: 200px; height: 200px; border-radius: 20px; border: 3px solid #ff9ec7; box-shadow: 0 0 30px #ff9ec7; margin: 15px 0; object-fit: cover; }
+  button { background: linear-gradient(135deg, #ff9ec7, #ffaedc); border: 3px solid #fff; border-radius: 30px; color: #1a0a1f; padding: 12px 28px; font-family: 'Comic Sans MS', cursive; font-size: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 0 20px #ff9ec7; transition: all 0.3s; margin-top: 10px; }
+  button:hover { transform: scale(1.1); box-shadow: 0 0 30px #ff9ec7, 0 0 50px #ffaedc; }
+  @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+ .grid-bg { position: absolute; width: 100%; height: 100%; background-image: radial-gradient(circle, rgba(255,158,199,0.15) 1px, transparent 1px); background-size: 25px 25px; animation: float 4s ease-in-out infinite; z-index: 0; }
+  @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+  #controls { position: absolute; bottom: 0; width: 100%; height: 80px; display: none; z-index: 15; padding: 10px; }
+ .control-btn { position: absolute; width: 120px; height: 50px; border: 3px solid #ff9ec7; border-radius: 25px; background: rgba(255,158,199,0.2); box-shadow: 0 0 20px #ff9ec7; display: flex; align-items: center; justify-content: center; font-size: 20px; bottom: 15px; }
+ .control-btn:active { background: rgba(255,158,199,0.5); transform: scale(0.95); }
+  #leftBtn { left: 20px; }
+  #rightBtn { right: 20px; }
+</style>
+</head>
+<body>
+<div id="game">
+  <div class="grid-bg"></div>
+  <canvas id="canvas" width="400" height="600"></canvas>
+  <button id="muteBtn" onclick="toggleMute()">🔊</button>
+  <div id="ui">
+    <div>
+      <div id="score">💕 SCORE: 0</div>
+      <div id="lives">💖 VIDAS: ♥♥♥</div>
+    </div>
+    <div id="level">FASE: 1</div>
+  </div>
+
+  <div id="controls">
+    <div class="control-btn" id="leftBtn">⬅️</div>
+    <div class="control-btn" id="rightBtn">➡️</div>
+  </div>
+
+  <div id="startScreen">
+    <div class="title">Breakout do Amor 💖</div>
+    <div class="subtitle">Para minha Kellen</div>
+    <div class="subtitle">Quebre todos os 💔 e 😡 com amor</div>
+    <div class="subtitle">Use ⬅️➡️ ou arraste o dedo</div>
+    <div class="subtitle">Zere pra ver nossa foto 💕</div>
+    <button onclick="startGame()">JOGAR COM AMOR 💗</button>
+  </div>
+
+  <div id="gameOverScreen" style="display:none;">
+    <div class="title" id="endTitle">GAME OVER 💔</div>
+    <img src="casal.jpg" class="victoryImg" id="victoryImg" style="display:none;">
+    <div class="subtitle" id="finalScore">SCORE FINAL: 0</div>
+    <div class="loveMsg" id="loveMsg">Te amo, Kellen 💕</div>
+    <button onclick="startGame()">JOGAR DE NOVO 💖</button>
+  </div>
+</div>
+
+<script>
+let audioCtx; let sfxGain; let isMuted = false;
+function initAudio() {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    sfxGain = audioCtx.createGain();
+    sfxGain.gain.value = 0.3;
+    sfxGain.connect(audioCtx.destination);
+  }
+}
+function playTone(freq, duration, type = 'sine', volume = 1) {
+  if (!audioCtx || isMuted) return;
+  const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+  osc.connect(gain); gain.connect(sfxGain); osc.type = type; osc.frequency.value = freq;
+  gain.gain.setValueAtTime(volume, audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+  osc.start(); osc.stop(audioCtx.currentTime + duration);
+}
+function playHit() { playTone(800, 0.05, 'sine', 0.3); }
+function playBreak() { playTone(600, 0.1, 'sine', 0.4); setTimeout(() => playTone(800, 0.1, 'sine', 0.4), 50); }
+function playDamage() { playTone(200, 0.2, 'sawtooth', 0.3); }
+function playVictory() { for(let i = 0; i < 5; i++) { setTimeout(() => playTone(400 + i * 100, 0.2, 'sine', 0.4), i * 100); } }
+function toggleMute() {
+  isMuted =!isMuted;
+  document.getElementById('muteBtn').textContent = isMuted? '🔇' : '🔊';
+  if (isMuted) sfxGain.gain.value = 0; else sfxGain.gain.value = 0.3;
+}
+
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const scoreEl = document.getElementById('score');
+const livesEl = document.getElementById('lives');
+const levelEl = document.getElementById('level');
+const startScreen = document.getElementById('startScreen');
+const gameOverScreen = document.getElementById('gameOverScreen');
+const finalScoreEl = document.getElementById('finalScore');
+const endTitleEl = document.getElementById('endTitle');
+const controls = document.getElementById('controls');
+const victoryImg = document.getElementById('victoryImg');
+const loveMsg = document.getElementById('loveMsg');
+
+let game = {
+  running: false, score: 0, lives: 3, level: 1,
+  paddle: { x: 160, y: 550, w: 80, h: 12, speed: 7 },
+  ball: { x: 200, y: 300, vx: 4, vy: -4, r: 8, launched: false },
+  bricks: [],
+  keys: {}, touchLeft: false, touchRight: false,
+  particles: []
+};
+
+const brickRows = 5;
+const brickCols = 8;
+const brickW = 42;
+const brickH = 20;
+const brickPadding = 6;
+const brickOffsetTop = 80;
+const brickOffsetLeft = 10;
+const brickEmojis = ['💔', '😡', '😤', '🤬', '😠'];
+
+document.addEventListener('keydown', e => {
+  game.keys[e.key.toLowerCase()] = true;
+  if(e.code === 'Space' &&!game.ball.launched) game.ball.launched = true;
+});
+document.addEventListener('keyup', e => { game.keys[e.key.toLowerCase()] = false; });
+
+document.getElementById('leftBtn').addEventListener('touchstart', e => { e.preventDefault(); game.touchLeft = true; });
+document.getElementById('leftBtn').addEventListener('touchend', e => { e.preventDefault(); game.touchLeft = false; });
+document.getElementById('rightBtn').addEventListener('touchstart', e => { e.preventDefault(); game.touchRight = true; });
+document.getElementById('rightBtn').addEventListener('touchend', e => { e.preventDefault(); game.touchRight = false; });
+
+canvas.addEventListener('touchmove', e => {
+  e.preventDefault();
+  const touch = e.touches[0];
+  const rect = canvas.getBoundingClientRect();
+  const x = touch.clientX - rect.left;
+  game.paddle.x = Math.max(0, Math.min(canvas.width - game.paddle.w, x - game.paddle.w/2));
+});
+
+canvas.addEventListener('click', () => {
+  if (!game.ball.launched && game.running) game.ball.launched = true;
+});
+
+function createBricks() {
+  game.bricks = [];
+  for(let r = 0; r < brickRows; r++) {
+    for(let c = 0; c < brickCols; c++) {
+      game.bricks.push({
+        x: brickOffsetLeft + c * (brickW + brickPadding),
+        y: brickOffsetTop + r * (brickH + brickPadding),
+        w: brickW,
+        h: brickH,
+        emoji: brickEmojis[r],
+        broken: false
+      });
+    }
+  }
+}
+
+function startGame() {
+  initAudio();
+  game = {
+    running: true, score: 0, lives: 3, level: 1,
+    paddle: { x: 160, y: 550, w: 80, h: 12, speed: 7 },
+    ball: { x: 200, y: 300, vx: 4, vy: -4, r: 8, launched: false },
+    bricks: [],
+    keys: {}, touchLeft: false, touchRight: false,
+    particles: []
+  };
+  createBricks();
+  startScreen.style.display = 'none';
+  gameOverScreen.style.display = 'none';
+  victoryImg.style.display = 'none';
+  controls.style.display = 'block';
+  updateUI();
+  loop();
+}
+
+function updateUI() {
+  scoreEl.textContent = `💕 SCORE: ${game.score}`;
+  livesEl.textContent = `💖 VIDAS: ${'♥'.repeat(Math.max(0,game.lives))}`;
+  levelEl.textContent = `FASE: ${game.level}`;
+}
+
+function createParticles(x, y, color = '#ff9ec7') {
+  for(let i = 0; i < 8; i++) {
+    game.particles.push({
+      x, y,
+      vx: (Math.random() - 0.5) * 4,
+      vy: (Math.random() - 0.5) * 4,
+      life: 20,
+      color,
+      size: Math.random() * 3 + 2
+    });
+  }
+}
+
+function update() {
+  if(!game.running) return;
+
+  if(game.keys['arrowleft'] || game.keys['a'] || game.touchLeft) {
+    game.paddle.x = Math.max(0, game.paddle.x - game.paddle.speed);
+  }
+  if(game.keys['arrowright'] || game.keys['d'] || game.touchRight) {
+    game.paddle.x = Math.min(canvas.width - game.paddle.w, game.paddle.x + game.paddle.speed);
+  }
+
+  if (!game.ball.launched) {
+    game.ball.x = game.paddle.x + game.paddle.w/2;
+    game.ball.y = game.paddle.y - game.ball.r - 5;
+  } else {
+    game.ball.x += game.ball.vx;
+    game.ball.y += game.ball.vy;
+
+    if (game.ball.x - game.ball.r <= 0 || game.ball.x + game.ball.r >= canvas.width) {
+      game.ball.vx *= -1;
+      playHit();
+    }
+    if (game.ball.y - game.ball.r <= 0) {
+      game.ball.vy *= -1;
+      playHit();
+    }
+
+    if (game.ball.y + game.ball.r >= game.paddle.y &&
+        game.ball.x >= game.paddle.x &&
+        game.ball.x <= game.paddle.x + game.paddle.w &&
+        game.ball.vy > 0) {
+      const hitPos = (game.ball.x - game.paddle.x) / game.paddle.w;
+      const angle = (hitPos - 0.5) * Math.PI/3;
+      const speed = Math.sqrt(game.ball.vx * game.ball.vx + game.ball.vy * game.ball.vy);
+      game.ball.vx = speed * Math.sin(angle);
+      game.ball.vy = -Math.abs(speed * Math.cos(angle));
+      playHit();
+    }
+
+    if (game.ball.y - game.ball.r > canvas.height) {
+      game.lives--;
+      playDamage();
+      updateUI();
+      if (game.lives <= 0) {
+        gameOver(false);
+      } else {
+        game.ball.launched = false;
+        game.ball.x = game.paddle.x + game.paddle.w/2;
+        game.ball.y = game.paddle.y - game.ball.r - 5;
+        game.ball.vx = 4 * (Math.random() > 0.5? 1 : -1);
+        game.ball.vy = -4;
+      }
+    }
+
+    for(let i = 0; i < game.bricks.length; i++) {
+      const b = game.bricks[i];
+      if (b.broken) continue;
+      if (game.ball.x + game.ball.r > b.x &&
+          game.ball.x - game.ball.r < b.x + b.w &&
+          game.ball.y + game.ball.r > b.y &&
+          game.ball.y - game.ball.r < b.y + b.h) {
+        b.broken = true;
+        game.score += 10;
+        playBreak();
+        createParticles(b.x + b.w/2, b.y + b.h/2, '#ff6b9d');
+        updateUI();
+
+        const ballCenterX = game.ball.x;
+        const ballCenterY = game.ball.y;
+        const brickCenterX = b.x + b.w/2;
+        const brickCenterY = b.y + b.h/2;
+        const dx = ballCenterX - brickCenterX;
+        const dy = ballCenterY - brickCenterY;
+
+        if (Math.abs(dx) > Math.abs(dy)) {
+          game.ball.vx *= -1;
+        } else {
+          game.ball.vy *= -1;
+        }
+        break;
+      }
+    }
+
+    const remainingBricks = game.bricks.filter(b =>!b.broken).length;
+    if (remainingBricks === 0) {
+      gameOver(true);
+    }
+  }
+
+  game.particles = game.particles.filter(p => {
+    p.x += p.vx;
+    p.y += p.vy;
+    p.life--;
+    return p.life > 0;
+  });
+}
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  ctx.shadowBlur = 20;
+  ctx.shadowColor = '#ff9ec7';
+  ctx.fillStyle = '#ff9ec7';
+  ctx.fillRect(game.paddle.x, game.paddle.y, game.paddle.w, game.paddle.h);
+
+  ctx.shadowBlur = 15;
+  ctx.shadowColor = '#ffaedc';
+  ctx.font = '16px Arial';
+  ctx.textAlign = 'center';
+  ctx.fillText('💗', game.ball.x, game.ball.y + 5);
+
+  ctx.shadowColor = '#ff6b9d';
+  ctx.font = '18px Arial';
+  game.bricks.forEach(b => {
+    if (!b.broken) {
+      ctx.fillText(b.emoji, b.x + b.w/2, b.y + b.h - 3);
+    }
+  });
+
+  game.particles.forEach(p => {
+    ctx.shadowBlur = 8;
+    ctx.shadowColor = p.color;
+    ctx.fillStyle = p.color;
+    ctx.globalAlpha = p.life / 20;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+  });
+  ctx.shadowBlur = 0;
+}
+
+function gameOver(victory) {
+  game.running = false;
+  controls.style.display = 'none';
+  finalScoreEl.textContent = `SCORE FINAL: ${game.score} 💕`;
+
+  if (victory) {
+    playVictory();
+    endTitleEl.textContent = 'VOCÊ QUEBROU TODAS AS BARREIRAS! 💖';
+    victoryImg.style.display = 'block';
+    loveMsg.textContent = 'Te amo, Kellen! Para sempre 💕';
+  } else {
+    endTitleEl.textContent = 'GAME OVER 💔';
+    victoryImg.style.display = 'none';
+    loveMsg.textContent = 'Te amo, Kellen 💕';
+  }
+  gameOverScreen.style.display = 'flex';
+}
+
+function loop() {
+  if(!game.running) return;
+  update();
+  draw();
+  requestAnimationFrame(loop);
+}
+</script>
+</body>
+</html>

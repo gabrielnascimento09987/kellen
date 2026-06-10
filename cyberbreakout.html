@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>GRID BREACHER v3.0</title>
+<title>GRID BREACHER v3.1</title>
 <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
@@ -26,7 +26,6 @@
     overflow: hidden;
     border-radius: 10px;
   }
-  /* FUNDO CYBERPUNK + CHUVA */
   #bg {
     position: absolute;
     top: 0; left: 0; width: 100%; height: 100%;
@@ -50,7 +49,6 @@
     0% { transform: perspective(600px) rotateX(65deg) translateY(0); }
     100% { transform: perspective(600px) rotateX(65deg) translateY(40px); }
   }
-  /* SCANLINES + CURVATURA CRT */
   #game::after {
     content: '';
     position: absolute;
@@ -61,7 +59,6 @@
     pointer-events: none;
     z-index: 5;
   }
-  /* GLITCH OVERLAY */
   #glitch {
     position: absolute;
     top: 0; left: 0; width: 100%; height: 100%;
@@ -70,7 +67,7 @@
     z-index: 6;
     opacity: 0;
   }
- .glitchActive { animation: glitchScreen 0.3s; }
+.glitchActive { animation: glitchScreen 0.3s; }
   @keyframes glitchScreen {
     0%, 100% { opacity: 0; }
     10% { opacity: 1; background: linear-gradient(90deg, transparent 0%, rgba(255,0,128,0.3) 50%, transparent 100%); transform: translateX(-5px); }
@@ -82,7 +79,7 @@
   #ui { position: absolute; top: 8px; left: 8px; right: 8px; z-index: 10; text-shadow: 0 0 10px #00ffea; font-size: 13px; display: flex; justify-content: space-between; }
   #ui span { color: #ff0080; text-shadow: 0 0 10px #ff0080; }
   #combo { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 40px; color: #ffff00; text-shadow: 0 0 20px #ffff00; z-index: 10; opacity: 0; pointer-events: none; }
- .comboShow { animation: comboAnim 0.5s; }
+.comboShow { animation: comboAnim 0.5s; }
   @keyframes comboAnim { 0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); } 50% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); } 100% { opacity: 0; transform: translate(-50%, -50%) scale(1); } }
 
   #muteBtn { position: absolute; top: 8px; right: 8px; z-index: 15; background: rgba(0,255,234,0.1); border: 1px solid #00ffea; width: 30px; height: 30px; font-size: 14px; cursor: pointer; box-shadow: 0 0 10px #00ffea; color: #00ffea; }
@@ -117,8 +114,8 @@
   <div id="bg"></div>
   <div id="glitch"></div>
   <canvas id="canvas" width="400" height="600"></canvas>
-  <button id="musicBtn" onclick="toggleMusic()">♫</button>
-  <button id="muteBtn" onclick="toggleMute()">♪</button>
+  <button id="musicBtn">♫</button>
+  <button id="muteBtn">♪</button>
   <div id="ui">
     <div>SCORE:<span id="score">0</span></div>
     <div>LIVES:<span id="lives">■■■</span></div>
@@ -133,19 +130,19 @@
   </div>
 
   <div id="startScreen">
-    <div class="title">GRID BREACHER v3.0</div>
-    <div class="subtitle">> SYNTHWAVE PROTOCOL ACTIVE</div>
+    <div class="title">GRID BREACHER v3.1</div>
+    <div class="subtitle">> TOQUE EM JACK IN PRA COMEÇAR</div>
     <div class="subtitle">> 5 FIREWALLS + MAINFRAME</div>
     <div class="subtitle">> COMBO SYSTEM ONLINE</div>
     <div class="subtitle">> P = PAUSE | SPACE = LAUNCH</div>
     <div id="ranking"></div>
-    <button onclick="startGame()">JACK IN</button>
+    <button id="startBtn">JACK IN</button>
   </div>
 
   <div id="pauseScreen" style="display:none;">
     <div class="title">PAUSED</div>
     <div class="subtitle">> PRESS P TO RESUME</div>
-    <button onclick="togglePause()">RESUME</button>
+    <button id="resumeBtn">RESUME</button>
   </div>
 
   <div id="gameOverScreen" style="display:none;">
@@ -153,28 +150,32 @@
     <div class="subtitle" id="finalScore">FINAL SCORE: 0</div>
     <div class="msg" id="msg">SYSTEM BREACH FAILED</div>
     <div id="rankingEnd" style="font-size:9px; color:#ffff00; margin-top:6px;"></div>
-    <button onclick="startGame()">REBOOT</button>
+    <button id="rebootBtn">REBOOT</button>
   </div>
 </div>
 
 <script>
-let audioCtx, sfxGain, musicGain, musicOsc = [], musicPlaying = false, isMuted = false;
+let audioCtx, sfxGain, musicGain, musicPlaying = false, isMuted = false;
 let musicTimer;
 
 function initAudio() {
   if (!audioCtx) {
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    sfxGain = audioCtx.createGain();
-    sfxGain.gain.value = 0.3;
-    sfxGain.connect(audioCtx.destination);
-    musicGain = audioCtx.createGain();
-    musicGain.gain.value = 0.15;
-    musicGain.connect(audioCtx.destination);
+    try {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      sfxGain = audioCtx.createGain();
+      sfxGain.gain.value = 0.3;
+      sfxGain.connect(audioCtx.destination);
+      musicGain = audioCtx.createGain();
+      musicGain.gain.value = 0.15;
+      musicGain.connect(audioCtx.destination);
+    } catch(e) {
+      console.log('Audio não suportado');
+    }
   }
 }
 
 function playTone(freq, duration, type = 'square', volume = 1, dest = sfxGain) {
-  if (!audioCtx || isMuted) return;
+  if (!audioCtx || isMuted ||!dest) return;
   const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
   osc.connect(gain); gain.connect(dest); osc.type = type; osc.frequency.value = freq;
   gain.gain.setValueAtTime(volume, audioCtx.currentTime);
@@ -183,7 +184,7 @@ function playTone(freq, duration, type = 'square', volume = 1, dest = sfxGain) {
 }
 
 function startMusic() {
-  if (!audioCtx || musicPlaying) return;
+  if (!audioCtx || musicPlaying || isMuted) return;
   musicPlaying = true;
   const bassLine = [110, 110, 82.5, 82.5, 110, 110, 146.8, 146.8];
   const melody = [440, 0, 440, 0, 523.25, 0, 587.33, 0];
@@ -227,6 +228,7 @@ function stopMusic() {
 }
 
 function toggleMusic() {
+  initAudio();
   if (musicPlaying) {
     stopMusic();
     document.getElementById('musicBtn').textContent = '×';
@@ -253,15 +255,11 @@ function playLaser() { playTone(1000, 0.05, 'square', 0.3); }
 function playCombo() { playTone(800, 0.1, 'square', 0.5); }
 
 function toggleMute() {
+  initAudio();
   isMuted =!isMuted;
   document.getElementById('muteBtn').textContent = isMuted? '×' : '♪';
-  if (isMuted) {
-    sfxGain.gain.value = 0;
-    musicGain.gain.value = 0;
-  } else {
-    sfxGain.gain.value = 0.3;
-    musicGain.gain.value = 0.15;
-  }
+  if (sfxGain) sfxGain.gain.value = isMuted? 0 : 0.3;
+  if (musicGain) musicGain.gain.value = isMuted? 0 : 0.15;
 }
 
 const canvas = document.getElementById('canvas');
@@ -323,23 +321,25 @@ document.addEventListener('keydown', e => {
     togglePause();
     return;
   }
-  game.keys[e.key.toLowerCase()] = true;
-  if(e.code === 'Space' && game.balls.length === 1 &&!game.balls[0].launched) game.balls[0].launched = true;
+  if (game.keys) game.keys[e.key.toLowerCase()] = true;
+  if(e.code === 'Space' && game.balls && game.balls.length === 1 &&!game.balls[0].launched) game.balls[0].launched = true;
 });
-document.addEventListener('keyup', e => { game.keys[e.key.toLowerCase()] = false; });
+document.addEventListener('keyup', e => { if (game.keys) game.keys[e.key.toLowerCase()] = false; });
 
 function togglePause() {
+  if (!game.running) return;
   game.paused =!game.paused;
   pauseScreen.style.display = game.paused? 'flex' : 'none';
 }
 
-document.getElementById('leftBtn').addEventListener('touchstart', e => { e.preventDefault(); game.touchLeft = true; });
-document.getElementById('leftBtn').addEventListener('touchend', e => { e.preventDefault(); game.touchLeft = false; });
-document.getElementById('rightBtn').addEventListener('touchstart', e => { e.preventDefault(); game.touchRight = true; });
-document.getElementById('rightBtn').addEventListener('touchend', e => { e.preventDefault(); game.touchRight = false; });
+document.getElementById('leftBtn').addEventListener('touchstart', e => { e.preventDefault(); if(game.touchLeft!== undefined) game.touchLeft = true; });
+document.getElementById('leftBtn').addEventListener('touchend', e => { e.preventDefault(); if(game.touchLeft!== undefined) game.touchLeft = false; });
+document.getElementById('rightBtn').addEventListener('touchstart', e => { e.preventDefault(); if(game.touchRight!== undefined) game.touchRight = true; });
+document.getElementById('rightBtn').addEventListener('touchend', e => { e.preventDefault(); if(game.touchRight!== undefined) game.touchRight = false; });
 
 canvas.addEventListener('touchmove', e => {
   e.preventDefault();
+  if (!game.paddle) return;
   const touch = e.touches[0];
   const rect = canvas.getBoundingClientRect();
   const x = touch.clientX - rect.left;
@@ -347,8 +347,15 @@ canvas.addEventListener('touchmove', e => {
 });
 
 canvas.addEventListener('click', () => {
-  if (game.balls.length === 1 &&!game.balls[0].launched && game.running &&!game.paused) game.balls[0].launched = true;
+  if (game.balls && game.balls.length === 1 &&!game.balls[0].launched && game.running &&!game.paused) game.balls[0].launched = true;
 });
+
+// Botões corrigidos
+document.getElementById('startBtn').addEventListener('click', startGame);
+document.getElementById('resumeBtn').addEventListener('click', togglePause);
+document.getElementById('rebootBtn').addEventListener('click', startGame);
+document.getElementById('musicBtn').addEventListener('click', toggleMusic);
+document.getElementById('muteBtn').addEventListener('click', toggleMute);
 
 function loadRanking() {
   const rank = JSON.parse(localStorage.getItem('gridRanking') || '[]');
@@ -420,7 +427,10 @@ function startGame() {
   pauseScreen.style.display = 'none';
   controls.style.display = 'block';
   updateUI();
-  loop();
+  if (!game.loopStarted) {
+    game.loopStarted = true;
+    loop();
+  }
 }
 
 function updateUI() {
@@ -657,15 +667,4 @@ function update() {
     return l.y > 0;
   });
 
-  game.powerups = game.powerups.filter(p => {
-    p.y += p.vy;
-    if (p.y + 10 >= game.paddle.y &&
-        p.x >= game.paddle.x &&
-        p.x <= game.paddle.x + game.paddle.w) {
-      activatePowerUp(p.type);
-      return false;
-    }
-    return p.y < canvas.height;
-  });
-
-  const
+  game.power

@@ -30,7 +30,7 @@
     content: '';
     position: absolute;
     top: 0; left: 0; width: 100%; height: 100%;
-    background: url('casal.jpeg') center/cover;
+    background: url('casal.jpg') center/cover;
     opacity: 0.15;
     z-index: 0;
   }
@@ -42,18 +42,18 @@
   #bossBarFill { height: 100%; background: linear-gradient(90deg, #ff0080, #ff6b9d); transition: width 0.3s; box-shadow: 0 0 10px #ff0080; }
   #muteBtn { position: absolute; top: 15px; right: 15px; z-index: 15; background: rgba(255,158,199,0.2); border: 2px solid #ff9ec7; border-radius: 50%; width: 40px; height: 40px; font-size: 18px; cursor: pointer; box-shadow: 0 0 15px #ff9ec7; }
   #startScreen, #gameOverScreen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(26,10,31,0.95); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 20; text-align: center; padding: 20px; }
- .title { font-size: 32px; margin-bottom: 15px; text-shadow: 0 0 25px #ff9ec7, 0 0 40px #ffaedc; animation: pulse 2s infinite; }
- .subtitle { font-size: 14px; margin-bottom: 12px; color: #ffcce6; line-height: 1.5; }
- .loveMsg { font-size: 20px; margin-top: 15px; color: #ffaedc; text-shadow: 0 0 20px #ff9ec7; }
- .victoryImg { width: 200px; height: 200px; border-radius: 20px; border: 3px solid #ff9ec7; box-shadow: 0 0 30px #ff9ec7; margin: 15px 0; object-fit: cover; }
+.title { font-size: 32px; margin-bottom: 15px; text-shadow: 0 0 25px #ff9ec7, 0 0 40px #ffaedc; animation: pulse 2s infinite; }
+.subtitle { font-size: 14px; margin-bottom: 12px; color: #ffcce6; line-height: 1.5; }
+.loveMsg { font-size: 20px; margin-top: 15px; color: #ffaedc; text-shadow: 0 0 20px #ff9ec7; }
+.victoryImg { width: 200px; height: 200px; border-radius: 20px; border: 3px solid #ff9ec7; box-shadow: 0 0 30px #ff9ec7; margin: 15px 0; object-fit: cover; }
   button { background: linear-gradient(135deg, #ff9ec7, #ffaedc); border: 3px solid #fff; border-radius: 30px; color: #1a0a1f; padding: 12px 28px; font-family: 'Comic Sans MS', cursive; font-size: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 0 20px #ff9ec7; transition: all 0.3s; margin-top: 10px; }
   button:hover { transform: scale(1.1); box-shadow: 0 0 30px #ff9ec7, 0 0 50px #ffaedc; }
   @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
- .grid-bg { position: absolute; width: 100%; height: 100%; background-image: radial-gradient(circle, rgba(255,158,199,0.15) 1px, transparent 1px); background-size: 25px 25px; animation: float 4s ease-in-out infinite; z-index: 0; }
+.grid-bg { position: absolute; width: 100%; height: 100%; background-image: radial-gradient(circle, rgba(255,158,199,0.15) 1px, transparent 1px); background-size: 25px 25px; animation: float 4s ease-in-out infinite; z-index: 0; }
   @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
   #controls { position: absolute; bottom: 0; width: 100%; height: 100px; display: none; z-index: 15; padding: 10px; }
- .control-btn { position: absolute; width: 60px; height: 60px; border: 3px solid #ff9ec7; border-radius: 50%; background: rgba(255,158,199,0.2); box-shadow: 0 0 20px #ff9ec7; display: flex; align-items: center; justify-content: center; font-size: 26px; bottom: 15px; }
- .control-btn:active { background: rgba(255,158,199,0.5); transform: scale(0.9); }
+.control-btn { position: absolute; width: 60px; height: 60px; border: 3px solid #ff9ec7; border-radius: 50%; background: rgba(255,158,199,0.2); box-shadow: 0 0 20px #ff9ec7; display: flex; align-items: center; justify-content: center; font-size: 26px; bottom: 15px; }
+.control-btn:active { background: rgba(255,158,199,0.5); transform: scale(0.9); }
   #leftBtn { left: 15px; }
   #rightBtn { left: 85px; }
   #fireBtn { right: 15px; width: 70px; height: 70px; }
@@ -93,7 +93,7 @@
 
   <div id="gameOverScreen" style="display:none;">
     <div class="title" id="endTitle">GAMER OVER 💔</div>
-    <img src="casal.jpeg" class="victoryImg" id="victoryImg" style="display:none;">
+    <img src="casal.jpg" class="victoryImg" id="victoryImg" style="display:none;">
     <div class="subtitle" id="finalScore">SCORE FINAL: 0</div>
     <div class="loveMsg" id="loveMsg">Te amo, Kellen 💕</div>
     <button onclick="startGame()">JOGAR DE NOVO 💖</button>
@@ -236,7 +236,10 @@ function update() {
   if(game.keys['arrowleft'] || game.keys['a'] || game.touchLeft) { game.player.x = Math.max(0, game.player.x - game.player.speed); }
   if(game.keys['arrowright'] || game.keys['d'] || game.touchRight) { game.player.x = Math.min(canvas.width - game.player.w, game.player.x + game.player.speed); }
   game.bullets = game.bullets.filter(b => { b.y -= b.speed; return b.y > -b.h; });
-  if(!game.boss && Date.now() - game.lastEnemy > 1200) { spawnEnemy(); game.lastEnemy = Date.now(); }
+
+  // FIX: Só spawna inimigo se não zerou
+  if(!game.boss &&!game.isVictory && Date.now() - game.lastEnemy > 1200) { spawnEnemy(); game.lastEnemy = Date.now(); }
+
   if(Date.now() - game.lastPowerup > 6000 && Math.random() < 0.4) { spawnPowerup(); game.lastPowerup = Date.now(); }
   if(!game.boss && game.score >= game.nextBossScore) { spawnBoss(); game.enemies = []; }
   if(game.boss) {
@@ -275,14 +278,33 @@ function update() {
     if(game.boss) {
       if(b.x < game.boss.x + game.boss.w && b.x + b.w > game.boss.x && b.y < game.boss.y + game.boss.h && b.y + b.h > game.boss.y) {
         game.boss.hp--; createParticles(game.boss.x + game.boss.w/2, game.boss.y + game.boss.h/2, '#ff0080'); updateBossHp();
-        if(game.boss.hp <= 0) { playBossDead(); createParticles(game.boss.x + game.boss.w/2, game.boss.y + game.boss.h/2, '#ff9ec7'); game.score += 50; game.boss = null; bossHpEl.style.display = 'none'; game.nextBossScore += 300; }
+        // FIX: BOSS MORREU = VITÓRIA 👇
+        if(game.boss.hp <= 0) {
+            playBossDead();
+            createParticles(game.boss.x + game.boss.w/2, game.boss.y + game.boss.h/2, '#ff9ec7');
+            game.score += 50;
+            game.boss = null;
+            bossHpEl.style.display = 'none';
+            game.nextBossScore += 300;
+            game.isVictory = true; // marca vitória
+            gameOver(); // chama tela de vitória
+            return false;
+        }
         return false;
       }
     }
     for(let i = game.enemies.length - 1; i >= 0; i--) {
       const e = game.enemies[i];
       if(b.x < e.x + e.w && b.x + b.w > e.x && b.y < e.y + e.h && b.y + b.h > e.y) {
-        createParticles(e.x + e.w/2, e.y + e.h/2, '#0ff'); game.enemies.splice(i, 1); game.score += 10; game.enemySpeed += 0.01; updateUI(); return false;
+        createParticles(e.x + e.w/2, e.y + e.h/2, '#0ff');
+        game.enemies.splice(i, 1);
+        // FIX: Só conta ponto se não zerou 👇
+        if (game.running &&!game.isVictory) {
+            game.score += 10;
+            game.enemySpeed += 0.01;
+            updateUI();
+        }
+        return false;
       }
     } return true;
   });
@@ -308,7 +330,8 @@ function draw() {
 function gameOver() {
   game.running = false; stopBgMusic(); controls.style.display = 'none'; bossHpEl.style.display = 'none';
   finalScoreEl.textContent = `SCORE FINAL: ${game.score} 💕`;
-  if (game.score >= 300) {
+  // FIX: Se é vitória usa a flag isVictory 👇
+  if (game.isVictory) {
     endTitleEl.textContent = 'VOCÊ SALVOU NOSSO AMOR! 💖';
     victoryImg.style.display = 'block';
     loveMsg.textContent = 'Te amo, Kellen! Para sempre 💕';

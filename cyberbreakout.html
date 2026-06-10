@@ -479,7 +479,7 @@ function activatePowerUp(type) {
   if (type === 'L') {
     for(let i = 0; i < 3; i++) {
       setTimeout(() => {
-        game.lasers.push({ x: game.paddle.x + game.paddle.w/2, y: game.paddle.y, vy: -12 });
+        if(game) game.lasers.push({ x: game.paddle.x + game.paddle.w/2, y: game.paddle.y, vy: -12 });
         playLaser();
       }, i * 100);
     }
@@ -505,6 +505,25 @@ function nextLevel() {
   game.balls = [{ x: game.paddle.x + game.paddle.w/2, y: game.paddle.y - 6, vx: levels[game.level-1].speed, vy: -levels[game.level-1].speed, r: 4, launched: false, trail: [] }];
   createBricks();
   updateUI();
+}
+
+function gameOver(victory) {
+  game.running = false;
+  controls.style.display = 'none';
+  bossHp.style.display = 'none';
+  finalScoreEl.textContent = `FINAL SCORE: ${game.score}`;
+  saveScore(game.score);
+
+  if (victory) {
+    playVictory();
+    endTitleEl.textContent = 'FIREWALL BREACHED';
+    msgEl.textContent = 'ACCESS GRANTED // YOU ARE THE ONE';
+  } else {
+    endTitleEl.textContent = 'CONNECTION LOST';
+    msgEl.textContent = 'SYSTEM BREACH FAILED';
+  }
+  gameOverScreen.style.display = 'flex';
+  if (animationId) cancelAnimationFrame(animationId);
 }
 
 function update() {
@@ -650,14 +669,4 @@ function update() {
   }
 
   game.lasers = game.lasers.filter(l => {
-    l.y += l.vy;
-    for (let j = 0; j < game.bricks.length; j++) {
-      const b = game.bricks[j];
-      if (!b.broken && l.x > b.x && l.x < b.x + b.w && l.y > b.y && l.y < b.y + b.h) {
-        b.broken = true;
-        game.score += 10;
-        createParticles(b.x + b.w/2, b.y + b.h/2, b.color);
-        return false;
-      }
-    }
-    if (game.boss &&!game.boss.dead && l.x > game.boss.x && l.x < game.boss.x + game.boss.w && l.y > game.boss
+    l.y += l.v

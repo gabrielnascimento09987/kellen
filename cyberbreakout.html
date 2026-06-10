@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>GRID BREACHER v3.2</title>
+<title>GRID BREACHER v3.3</title>
 <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
@@ -15,6 +15,7 @@
     justify-content: center;
     align-items: center;
     height: 100vh;
+    touch-action: none;
   }
   #game {
     position: relative;
@@ -90,7 +91,7 @@
 .subtitle { font-size: 10px; margin-bottom: 5px; color: #00ffea; line-height: 1.4; letter-spacing: 1px; }
 .msg { font-size: 12px; margin-top: 8px; color: #ff0080; text-shadow: 0 0 15px #ff0080; }
   button { background: transparent; border: 2px solid #00ffea; color: #00ffea; padding: 8px 20px; font-family: 'Courier New', monospace; font-size: 11px; cursor: pointer; box-shadow: 0 0 15px #00ffea; transition: all 0.2s; margin-top: 8px; text-transform: uppercase; }
-  button:hover { background: #00ffea; color: #000; box-shadow: 0 0 25px #00ffea, 0 0 40px #ff0080; }
+  button:active { background: #00ffea; color: #000; }
   @keyframes glitch {
     0%, 100% { text-shadow: 0 0 25px #00ffea, 0 0 50px #ff0080; transform: translate(0); }
     20% { text-shadow: -3px 0 #ff0080, 3px 0 #00ffea; transform: translate(-2px, 2px); }
@@ -130,7 +131,7 @@
   </div>
 
   <div id="startScreen">
-    <div class="title">GRID BREACHER v3.2</div>
+    <div class="title">GRID BREACHER v3.3</div>
     <div class="subtitle">> TOQUE EM JACK IN PRA COMEÇAR</div>
     <div class="subtitle">> 5 FIREWALLS + MAINFRAME</div>
     <div class="subtitle">> COMBO SYSTEM ONLINE</div>
@@ -155,8 +156,8 @@
 </div>
 
 <script>
-let audioCtx, sfxGain, musicGain, musicPlaying = false, isMuted = false;
-let musicTimer;
+let audioCtx = null, sfxGain, musicGain, musicPlaying = false, isMuted = false;
+let musicTimer, animationId = null;
 
 function initAudio() {
   if (!audioCtx) {
@@ -172,6 +173,7 @@ function initAudio() {
       console.log('Audio não suportado');
     }
   }
+  if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
 }
 
 function playTone(freq, duration, type = 'square', volume = 1, dest = sfxGain) {
@@ -279,7 +281,7 @@ const bossHp = document.getElementById('bossHp');
 const bossHpBar = document.getElementById('bossHpBar');
 const gameDiv = document.getElementById('game');
 
-let game = {};
+let game = null;
 const brickColors = ['#00ffea', '#ff0080', '#ffff00', '#00ff00', '#ff00ff', '#0080ff'];
 const levels = [
   { rows: 4, cols: 10, speed: 4 },
@@ -288,7 +290,7 @@ const levels = [
   { rows: 6, cols: 10, speed: 7, pattern: 'checker' },
   { rows: 0, cols: 0, speed: 8, boss: true }
 ];
-let stars = [], rain = [], animationId = null;
+let stars = [], rain = [];
 
 function createStars() {
   stars = [];
@@ -317,30 +319,31 @@ function createRain() {
 }
 
 document.addEventListener('keydown', e => {
+  if (!game) return;
   if (e.key.toLowerCase() === 'p' && game.running) {
     togglePause();
     return;
   }
-  if (game.keys) game.keys[e.key.toLowerCase()] = true;
+  game.keys[e.key.toLowerCase()] = true;
   if(e.code === 'Space' && game.balls && game.balls.length === 1 &&!game.balls[0].launched && game.running &&!game.paused) game.balls[0].launched = true;
 });
-document.addEventListener('keyup', e => { if (game.keys) game.keys[e.key.toLowerCase()] = false; });
+document.addEventListener('keyup', e => { if (game && game.keys) game.keys[e.key.toLowerCase()] = false; });
 
 function togglePause() {
-  if (!game.running) return;
+  if (!game ||!game.running) return;
   game.paused =!game.paused;
   pauseScreen.style.display = game.paused? 'flex' : 'none';
   if (!game.paused) loop();
 }
 
-document.getElementById('leftBtn').addEventListener('touchstart', e => { e.preventDefault(); if(game.touchLeft!== undefined) game.touchLeft = true; });
-document.getElementById('leftBtn').addEventListener('touchend', e => { e.preventDefault(); if(game.touchLeft!== undefined) game.touchLeft = false; });
-document.getElementById('rightBtn').addEventListener('touchstart', e => { e.preventDefault(); if(game.touchRight!== undefined) game.touchRight = true; });
-document.getElementById('rightBtn').addEventListener('touchend', e => { e.preventDefault(); if(game.touchRight!== undefined) game.touchRight = false; });
+document.getElementById('leftBtn').addEventListener('touchstart', e => { e.preventDefault(); if(game) game.touchLeft = true; });
+document.getElementById('leftBtn').addEventListener('touchend', e => { e.preventDefault(); if(game) game.touchLeft = false; });
+document.getElementById('rightBtn').addEventListener('touchstart', e => { e.preventDefault(); if(game) game.touchRight = true; });
+document.getElementById('rightBtn').addEventListener('touchend', e => { e.preventDefault(); if(game) game.touchRight = false; });
 
 canvas.addEventListener('touchmove', e => {
   e.preventDefault();
-  if (!game.paddle) return;
+  if (!game ||!game.paddle) return;
   const touch = e.touches[0];
   const rect = canvas.getBoundingClientRect();
   const x = touch.clientX - rect.left;
@@ -348,7 +351,7 @@ canvas.addEventListener('touchmove', e => {
 });
 
 canvas.addEventListener('click', () => {
-  if (game.balls && game.balls.length === 1 &&!game.balls[0].launched && game.running &&!game.paused) game.balls[0].launched = true;
+  if (game && game.balls && game.balls.length === 1 &&!game.balls[0].launched && game.running &&!game.paused) game.balls[0].launched = true;
 });
 
 document.getElementById('startBtn').addEventListener('click', startGame);
@@ -419,8 +422,7 @@ function startGame() {
     bricks: [],
     keys: {}, touchLeft: false, touchRight: false,
     particles: [], powerups: [], lasers: [],
-    boss: null, combo: 0, comboTimer: 0,
-    loopStarted: true
+    boss: null, combo: 0, comboTimer: 0
   };
   createBricks();
   startScreen.style.display = 'none';
@@ -428,7 +430,7 @@ function startGame() {
   pauseScreen.style.display = 'none';
   controls.style.display = 'block';
   updateUI();
-  cancelAnimationFrame(animationId);
+  if (animationId) cancelAnimationFrame(animationId);
   loop();
 }
 
@@ -504,7 +506,7 @@ function nextLevel() {
 }
 
 function update() {
-  if(!game.running || game.paused) return;
+  if(!game ||!game.running || game.paused) return;
 
   stars.forEach(s => {
     s.y += s.speed;
@@ -534,7 +536,8 @@ function update() {
     game.paddle.x = Math.min(canvas.width - game.paddle.w, game.paddle.x + game.paddle.speed);
   }
 
-  game.balls.forEach((ball, idx) => {
+  for (let i = game.balls.length - 1; i >= 0; i--) {
+    const ball = game.balls[i];
     if (ball.trail.length > 10) ball.trail.shift();
     ball.trail.push({ x: ball.x, y: ball.y });
 
@@ -567,7 +570,7 @@ function update() {
       }
 
       if (ball.y - ball.r > canvas.height) {
-        game.balls.splice(idx, 1);
+        game.balls.splice(i, 1);
         if (game.balls.length === 0) {
           game.lives--;
           game.combo = 0;
@@ -575,14 +578,17 @@ function update() {
           updateUI();
           if (game.lives <= 0) {
             gameOver(false);
+            return;
           } else {
             game.balls = [{ x: game.paddle.x + game.paddle.w/2, y: game.paddle.y - 6, vx: levels[game.level-1].speed, vy: -levels[game.level-1].speed, r: 4, launched: false, trail: [] }];
           }
         }
+        continue;
       }
 
-      game.bricks.forEach(b => {
-        if (b.broken) return;
+      for (let j = 0; j < game.bricks.length; j++) {
+        const b = game.bricks[j];
+        if (b.broken) continue;
         if (ball.x + ball.r > b.x &&
             ball.x - ball.r < b.x + b.w &&
             ball.y + ball.r > b.y &&
@@ -602,8 +608,9 @@ function update() {
           const dy = ball.y - (b.y + b.h/2);
           if (Math.abs(dx) > Math.abs(dy)) ball.vx *= -1;
           else ball.vy *= -1;
+          break;
         }
-      });
+      }
 
       if (game.boss &&!game.boss.dead) {
         if (ball.x + ball.r > game.boss.x &&
@@ -633,7 +640,7 @@ function update() {
         }
       }
     }
-  });
+  }
 
   if (game.boss &&!game.boss.dead) {
     game.boss.x += game.boss.dir * 2;
@@ -642,21 +649,13 @@ function update() {
 
   game.lasers = game.lasers.filter(l => {
     l.y += l.vy;
-    game.bricks.forEach(b => {
+    for (let j = 0; j < game.bricks.length; j++) {
+      const b = game.bricks[j];
       if (!b.broken && l.x > b.x && l.x < b.x + b.w && l.y > b.y && l.y < b.y + b.h) {
         b.broken = true;
         game.score += 10;
         createParticles(b.x + b.w/2, b.y + b.h/2, b.color);
-        l.y = -100;
+        return false;
       }
-    });
-    if (game.boss &&!game.boss.dead && l.x > game.boss.x && l.x < game.boss.x + game.boss.w && l.y > game.boss.y && l.y < game.boss.y + game.boss.h) {
-      game.boss.hp--;
-      game.score += 50;
-      updateBossHp();
-      l.y = -100;
-      if (game.boss.hp <= 0) {
-        game.boss.dead = true;
-        bossHp.style.display = 'none';
-        game.score += 1000;
-        createParticles(game.boss.x + game.boss
+    }
+    if (game.boss &&!game.boss.dead && l.x > game.boss.x && l.x < game.boss.x + game.boss.w && l.y > game.boss.y && l.y < game

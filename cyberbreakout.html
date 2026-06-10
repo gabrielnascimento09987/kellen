@@ -26,80 +26,50 @@
     border: 3px solid #0ff;
     box-shadow: 0 0 30px #0ff, inset 0 0 20px #0ff33;
   }
-  canvas {
-    display: block;
-    width: 100%;
-    height: 100%;
-  }
+  canvas { display: block; width: 100%; height: 100%; }
   #ui {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    right: 10px;
-    display: flex;
-    justify-content: space-between;
-    font-size: 14px;
-    text-shadow: 0 0 10px #0ff;
-    z-index: 10;
-    pointer-events: none;
+    position: absolute; top: 10px; left: 10px; right: 10px;
+    display: flex; justify-content: space-between;
+    font-size: 14px; text-shadow: 0 0 10px #0ff;
+    z-index: 10; pointer-events: none;
   }
   #ui span { color: #f0f; text-shadow: 0 0 10px #f0f; }
   #menu {
-    position: absolute;
-    top: 0; left: 0; width: 100%; height: 100%;
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
     background: rgba(0,0,0,0.9);
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    z-index: 20;
-    text-align: center;
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    z-index: 20; text-align: center;
   }
- .title {
-    font-size: 32px;
-    color: #fff;
+.title {
+    font-size: 32px; color: #fff;
     text-shadow: 0 0 20px #0ff, 0 0 40px #f0f;
-    margin-bottom: 20px;
-    animation: flicker 2s infinite;
+    margin-bottom: 20px; animation: flicker 2s infinite;
   }
   @keyframes flicker {
     0%, 100% { opacity: 1; }
     50% { opacity: 0.8; text-shadow: 0 0 20px #f0f, 0 0 40px #0ff; }
   }
- .subtitle { font-size: 12px; color: #0ff; margin: 5px 0; }
+.subtitle { font-size: 12px; color: #0ff; margin: 5px 0; }
   button {
-    background: transparent;
-    border: 2px solid #0ff;
-    color: #0ff;
-    padding: 10px 30px;
-    font-family: 'Courier New', monospace;
-    font-size: 14px;
-    cursor: pointer;
-    margin-top: 20px;
-    box-shadow: 0 0 15px #0ff;
+    background: transparent; border: 2px solid #0ff; color: #0ff;
+    padding: 10px 30px; font-family: 'Courier New', monospace;
+    font-size: 14px; cursor: pointer; margin-top: 20px; box-shadow: 0 0 15px #0ff;
   }
   button:active { background: #0ff; color: #000; }
   #controls {
-    position: absolute;
-    bottom: 0; width: 100%; height: 70px;
-    display: none;
-    z-index: 15;
+    position: absolute; bottom: 0; width: 100%; height: 70px;
+    display: none; z-index: 15;
   }
- .btn {
-    position: absolute;
-    width: 100px; height: 50px;
-    border: 2px solid #0ff;
-    background: rgba(0,255,255,0.1);
-    bottom: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 20px;
-    user-select: none;
+.btn {
+    position: absolute; width: 100px; height: 50px;
+    border: 2px solid #0ff; background: rgba(0,255,255,0.1);
+    bottom: 10px; display: flex; align-items: center; justify-content: center;
+    font-size: 20px; user-select: none;
   }
- .btn:active { background: rgba(0,255,255,0.3); }
+.btn:active { background: rgba(0,255,255,0.3); }
   #left { left: 20px; }
   #right { right: 20px; }
+  #launch { position: absolute; bottom: 25px; left: 50%; transform: translateX(-50%); font-size: 10px; color: #0ff; opacity: 0.6; }
 </style>
 </head>
 <body>
@@ -113,6 +83,7 @@
   <div id="controls">
     <div class="btn" id="left">◀</div>
     <div class="btn" id="right">▶</div>
+    <div id="launch">TOQUE PRA LANÇAR</div>
   </div>
   <div id="menu">
     <div class="title">CYBER BREAKER</div>
@@ -131,12 +102,14 @@ const lEl = document.getElementById('l');
 const lvEl = document.getElementById('lv');
 const menu = document.getElementById('menu');
 const controls = document.getElementById('controls');
+const launchText = document.getElementById('launch');
 
 c.width = 400;
 c.height = 600;
 
 let game = null;
 let leftPressed = false, rightPressed = false;
+let autoLaunchTimer = null;
 
 document.getElementById('start').onclick = () => {
   menu.style.display = 'none';
@@ -152,7 +125,7 @@ document.getElementById('right').addEventListener('touchend', e => { e.preventDe
 document.addEventListener('keydown', e => {
   if (e.key === 'ArrowLeft' || e.key === 'a') leftPressed = true;
   if (e.key === 'ArrowRight' || e.key === 'd') rightPressed = true;
-  if (e.code === 'Space' && game && game.ball &&!game.ball.launched) game.ball.launched = true;
+  if (e.code === 'Space') launchBall();
 });
 
 document.addEventListener('keyup', e => {
@@ -162,7 +135,7 @@ document.addEventListener('keyup', e => {
 
 c.addEventListener('touchstart', e => {
   e.preventDefault();
-  if (game && game.ball &&!game.ball.launched) game.ball.launched = true;
+  launchBall();
 });
 
 c.addEventListener('touchmove', e => {
@@ -172,6 +145,17 @@ c.addEventListener('touchmove', e => {
   const x = (e.touches[0].clientX - rect.left) * (c.width / rect.width);
   game.paddle.x = Math.max(0, Math.min(c.width - game.paddle.w, x - game.paddle.w / 2));
 });
+
+function launchBall() {
+  if (game && game.ball &&!game.ball.launched) {
+    game.ball.launched = true;
+    const speed = game.ball.speed;
+    game.ball.vx = speed * (Math.random() > 0.5? 1 : -1);
+    game.ball.vy = -speed;
+    launchText.style.display = 'none';
+    if (autoLaunchTimer) clearTimeout(autoLaunchTimer);
+  }
+}
 
 function startGame() {
   game = {
@@ -185,7 +169,15 @@ function startGame() {
     particles: []
   };
   createLevel();
+  resetBall();
   updateUI();
+  launchText.style.display = 'block';
+
+  // Auto-lança depois de 3s se o jogador não clicar
+  autoLaunchTimer = setTimeout(() => {
+    if (game &&!game.ball.launched) launchBall();
+  }, 3000);
+
   loop();
 }
 
@@ -218,9 +210,14 @@ function updateUI() {
 function resetBall() {
   game.ball.x = game.paddle.x + game.paddle.w / 2;
   game.ball.y = game.paddle.y - game.ball.r - 2;
-  game.ball.vx = game.ball.speed * (Math.random() > 0.5? 1 : -1);
-  game.ball.vy = -game.ball.speed;
+  game.ball.vx = 0;
+  game.ball.vy = 0;
   game.ball.launched = false;
+  launchText.style.display = 'block';
+  if (autoLaunchTimer) clearTimeout(autoLaunchTimer);
+  autoLaunchTimer = setTimeout(() => {
+    if (game &&!game.ball.launched) launchBall();
+  }, 3000);
 }
 
 function createParticles(x, y, color) {
@@ -234,6 +231,16 @@ function createParticles(x, y, color) {
       size: Math.random() * 3 + 1
     });
   }
+}
+
+function gameOver() {
+  game.running = false;
+  controls.style.display = 'none';
+  setTimeout(() => {
+    menu.style.display = 'flex';
+    menu.querySelector('.title').textContent = 'GAME OVER';
+    menu.querySelector('.subtitle').textContent = `FINAL SCORE: ${game.score}`;
+  }, 500);
 }
 
 function update() {
@@ -385,34 +392,6 @@ function loop() {
   draw();
   requestAnimationFrame(loop);
 }
-
-function gameOver() {
-  game.running = false;
-  controls.style.display = 'none';
-  setTimeout(() => {
-    menu.style.display = 'flex';
-    menu.querySelector('.title').textContent = 'GAME OVER';
-    menu.querySelector('.subtitle').textContent = `FINAL SCORE: ${game.score}`;
-  }, 500);
-}
-
-// Init
-loadRanking();
-function loadRanking() {
-  const rank = JSON.parse(localStorage.getItem('cyberBreaker') || '[]');
-  document.getElementById('ranking').innerHTML = rank.length?
-    'TOP: ' + rank.slice(0,3).join(' | ') : '';
-}
-
-window.addEventListener('beforeunload', () => {
-  if (game && game.score > 0) {
-    let rank = JSON.parse(localStorage.getItem('cyberBreaker') || '[]');
-    rank.push(game.score);
-    rank.sort((a,b) => b - a);
-    rank = rank.slice(0,5);
-    localStorage.setItem('cyberBreaker', JSON.stringify(rank));
-  }
-});
 </script>
 </body>
 </html>

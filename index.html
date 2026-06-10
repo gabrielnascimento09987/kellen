@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Game feito para meu amor Kellen 💖</title>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #1a0a1f;
+    font-family: 'Comic Sans MS', 'Courier New', cursive;
+    color: #ff9ec7;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
+  #game {
+    position: relative;
+    width: 400px;
+    height: 600px;
+    border: 3px solid #ff9ec7;
+    border-radius: 20px;
+    box-shadow: 0 0 30px #ff9ec7, inset 0 0 30px #ff9ec780;
+    background: linear-gradient(180deg, #2d1b3d 0%, #1a0a1f 100%);
+    overflow: hidden;
+  }
+  canvas { position: absolute; top: 0; left: 0; }
+  #ui {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    right: 15px;
+    z-index: 10;
+    text-shadow: 0 0 15px #ff9ec7;
+    font-size: 18px;
+    display: flex;
+    justify-content: space-between;
+  }
+  #powerupStatus {
+    position: absolute;
+    top: 45px;
+    left: 15px;
+    z-index: 10;
+    font-size: 12px;
+    text-shadow: 0 0 10px #ff9ec7;
+  }
+  #bossHp {
+    position: absolute;
+    top: 45px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+    font-size: 16px;
+    text-shadow: 0 0 15px #ff0080;
+    display: none;
+  }
+  #bossBar {
+    width: 200px;
+    height: 18px;
+    background: rgba(0,0,0,0.5);
+    border: 2px solid #ff0080;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-top: 5px;
+  }
+  #bossBarFill {
+    height: 100%;
+    background: linear-gradient(90deg, #ff0080, #ff6b9d);
+    transition: width 0.3s;
+    box-shadow: 0 0 10px #ff0080;
+  }
+  #muteBtn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    z-index: 15;
+    background: rgba(255,158,199,0.2);
+    border: 2px solid #ff9ec7;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+    cursor: pointer;
+    box-shadow: 0 0 15px #ff9ec7;
+  }
+  #startScreen, #gameOverScreen {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(26,10,31,0.95); display: flex; flex-direction: column;
+    justify-content: center; align-items: center; z-index: 20; text-align: center; padding: 20px;
+  }
+.title {
+    font-size: 32px; margin-bottom: 15px;
+    text-shadow: 0 0 25px #ff9ec7, 0 0 40px #ffaedc;
+    animation: pulse 2s infinite;
+  }
+.subtitle { font-size: 14px; margin-bottom: 12px; color: #ffcce6; line-height: 1.5; }
+.loveMsg { font-size: 20px; margin-top: 15px; color: #ffaedc; text-shadow: 0 0 20px #ff9ec7; }
+  button {
+    background: linear-gradient(135deg, #ff9ec7, #ffaedc);
+    border: 3px solid #fff;
+    border-radius: 30px;
+    color: #1a0a1f;
+    padding: 12px 28px;
+    font-family: 'Comic Sans MS', cursive;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 0 20px #ff9ec7;
+    transition: all 0.3s;
+    margin-top: 10px;
+  }
+  button:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 30px #ff9ec7, 0 0 50px #ffaedc;
+  }
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+  }
+.grid-bg {
+    position: absolute; width: 100%; height: 100%;
+    background-image:
+      radial-gradient(circle, rgba(255,158,199,0.15) 1px, transparent 1px);
+    background-size: 25px 25px;
+    animation: float 4s ease-in-out infinite;
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+  #controls {
+    position: absolute; bottom: 0; width: 100%; height: 100px;
+    display: none; z-index: 15; padding: 10px;
+  }
+.control-btn {
+    position: absolute; width: 60px; height: 60px;
+    border: 3px solid #ff9ec7; border-radius: 50%;
+    background: rgba(255,158,199,0.2); box-shadow: 0 0 20px #ff9ec7;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 26px; bottom: 15px;
+  }
+.control-btn:active { background: rgba(255,158,199,0.5); transform: scale(0.9); }
+  #leftBtn { left: 15px; }
+  #rightBtn { left: 85px; }
+  #fireBtn { right: 15px; width: 70px; height: 70px; }
+</style>
+</head>
+<body>
+<div id="game">
+  <div class="grid-bg"></div>
+  <canvas id="canvas" width="400" height="600"></canvas>
+  <button id="muteBtn" onclick="toggleMute()">🔊</button>
+  <div id="ui">
+    <div>
+      <div id="score">💕 SCORE: 0</div>
+      <div id="lives">💖 VIDAS: ♥♥♥♥♥</div>
+    </div>
+  </div>
+  <div id="powerupStatus"></div>
+  <div id="bossHp">
+    <div>👹 CHEFÃO 💀</div>
+    <div id="bossBar"><div id="bossBarFill" style="width:100%"></div></div>
+  </div>
+
+  <div id="controls">
+    <div class="control-btn" id="leftBtn">⬅️</div>
+    <div class="control-btn" id="rightBtn">➡️</div>
+    <div class="control-btn" id="fireBtn">💗</div>
+  </div>
+
+  <div id="startScreen">
+    <div class="title">Para meu amor Kellen 💖</div>
+    <div class="subtitle">CUTE SYSTEM DEFENSE</div>
+    <div class="subtitle">🌸 = +1 Vida | 💎 = Tiro Duplo | ⭐ = Invencível</div>
+    <div class="subtitle">Segura ESPAÇO ou 💗 pra tiro automático!</div>
+    <div class="subtitle">Derrote o chefão 👹 a cada 300 pts</div>
+    <button onclick="startGame()">JOGAR COM AMOR 💕</button>
+  </div>
+
+  <div id="gameOverScreen" style="display:none;">
+    <div class="title" id="endTitle">GAMER OVER 💔</div>
+    <div class="subtitle" id="finalScore">SCORE FINAL: 0</div>
+    <div class="loveMsg">Te amo, Kellen 💕</div>
+    <button onclick="startGame()">JOGAR DE NOVO 💖</button>
+  </div>
+</div>
+
+<script>
+// Sistema de áudio
+let audioCtx;
+let bgMusicGain, sfxGain;
+let isMuted = false;
+let bgMusicOsc = [];
+
+function initAudio() {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    bgMusicGain = audioCtx.createGain();
+    sfxGain = audioCtx.createGain();
+    bgMusicGain.gain.value = 0.15;
+    sfxGain.gain.value = 0.3;
+    bgMusicGain.connect(audioCtx.destination);
+    sfxGain.connect(audioCtx.destination);
+  }
+}
+
+function playTone(freq, duration, type = 'sine', volume = 1, dest = sfxGain) {
+  if (!audioCtx || isMuted) return;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.connect(gain);
+  gain.connect(dest);
+  osc.type = type;
+  osc.frequency.value = freq;
+  gain.gain.setValueAtTime(volume, audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+  osc.start();
+  osc.stop(audioCtx.currentTime + duration);
+  return osc;
+}
+
+function playShoot() {
+  playTone(800, 0.08, 'sine', 0.25);
+  setTimeout(() => playTone(1000, 0.08, 'sine', 0.15), 40);
+}
+
+function playPowerup() {
+  playTone(600, 0.1, 'sine', 0.4);
+  setTimeout(() => playTone(800, 0.1, 'sine', 0.4), 100);
+  setTimeout(() => playTone(1000, 0.2, 'sine', 0.4), 200);
+}
+
+function playDamage() {
+  playTone(200, 0.2, 'sawtooth', 0.3);
+  setTimeout(() => playTone(150, 0.2, 'sawtooth', 0.3), 100);
+}
+
+function playBossSpawn() {
+  playTone(100, 0.3, 'sawtooth', 0.5);
+  setTimeout(() => playTone(80, 0.3, 'sawtooth', 0.5), 200);
+  setTimeout(() => playTone(60, 0.5, 'sawtooth', 0.5), 400);
+}
+
+function playBossDead() {
+  for(let i = 0; i < 5; i++) {
+    setTimeout(() => playTone(200 + i * 100, 0.3, 'sine', 0.4), i * 150);
+  }
+}
+
+function startBgMusic() {
+  if (!audioCtx || isMuted || bgMusicOsc.length > 0) return;
+  const notes = [523.25, 587.33, 659.25, 783.99, 880.00, 783.99, 659.25, 587.33];
+  let noteIndex = 0;
+  function playNote() {
+    if (!game.running || isMuted) return;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(bgMusicGain);
+    osc.type = 'triangle';
+    osc.frequency.value = notes[noteIndex % notes.length];
+    gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.5);
+    noteIndex++;
+    setTimeout(playNote, 500);
+  }
+  playNote();
+}
+
+function stopBgMusic() {
+  bgMusicOsc.forEach(osc => { try { osc.stop(); } catch(e) {} });
+  bgMusicOsc = [];
+}
+
+function toggleMute() {
+  isMuted =!isMuted;
+  document.getElementById('muteBtn').textContent = isMuted? '🔇' : '🔊';
+  if (isMuted) {
+    stopBgMusic();
+    sfxGain.gain.value = 0;
+  } else {
+    sfxGain.gain.value = 0.3;
+    if (game.running) startBgMusic();
+  }
+}
+
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const scoreEl = document.getElementById('score');
+const livesEl = document.getElementById('lives');
+const startScreen = document.getElementById('startScreen');
+const gameOverScreen = document.getElementById('gameOverScreen');
+const finalScoreEl = document.getElementById('finalScore');
+const endTitleEl = document.getElementById('endTitle');
+const controls = document.getElementById('controls');
+const bossHpEl = document.getElementById('bossHp');
+const bossBarFill = document.getElementById('bossBarFill');
+const powerupStatusEl = document.getElementById('powerupStatus');
+
+function resize() {
+  canvas.width = 400;
+  canvas.height = 600;
+}
+resize();
+
+let game = {
+  running: false, score: 0, lives: 5,
+  player: { x: 200, y: 520, w: 40, h: 30, speed: 5, invincible: false, invincibleEnd: 0, doubleShot: false, doubleShotEnd: 0, autoFire: false },
+  bullets: [], enemies: [], particles: [], powerups: [], bossBullets: [],
+  boss: null, nextBossScore: 300,
+  keys: {}, touchLeft: false, touchRight: false, touchFire: false,
+  lastEnemy: 0, enemySpeed: 1.0, lastShot: 0, lastPowerup: 0
+};
+
+// Controles teclado - auto-fire no ESPAÇO
+document.addEventListener('keydown', e => {
+  game.keys[e.key.toLowerCase()] = true;
+  if(e.code === 'Space') {
+    e.preventDefault();
+    if(game.running) game.player.autoFire = true;
+  }
+});
+document.addEventListener('keyup', e => {
+  game.keys[e.key.toLowerCase()] = false;
+  if(e.code === 'Space') game.player.autoFire = false;
+});
+
+// Controles touch - auto-fire no botão
+document.getElementById('leftBtn').addEventListener('touchstart', e => { e.preventDefault(); game.touchLeft = true; });
+document.getElementById('leftBtn').addEventListener('touchend', e => { e.preventDefault(); game.touchLeft = false; });
+document.getElementById('rightBtn').addEventListener('touchstart', e => { e.preventDefault(); game.touchRight = true; });
+document.getElementById('rightBtn').addEventListener('touchend', e => { e.preventDefault(); game.touchRight = false; });
+document.getElementById('fireBtn').addEventListener('touchstart', e => { e.preventDefault(); if(game.running) game.touchFire = true; });
+document.getElementById('fireBtn').addEventListener('touchend', e => { e.preventDefault(); game.touchFire = false; });
+
+function startGame() {
+  initAudio();
+  resize();
+  game = {
+    running: true, score: 0, lives: 5,
+    player: { x: canvas.width/2-20, y: canvas.height-100, w: 40, h: 30, speed: 5, invincible: false, invincibleEnd: 0, doubleShot: false, doubleShotEnd: 0, autoFire: false },
+    bullets: [], enemies: [], particles: [], powerups: [], bossBullets: [],
+    boss: null, nextBossScore: 300,
+    keys: {}, touchLeft: false, touchRight: false, touchFire: false,
+    lastEnemy: 0, enemySpeed: 1.0, lastShot: 0, lastPowerup: 0
+  };
+  startScreen.style.display = 'none';
+  gameOverScreen.style.display = 'none';
+  bossHpEl.style.display = 'none';
+  powerupStatusEl.textContent = '';
+  controls.style.display = 'block';
+  updateUI();
+  startBgMusic();
+  loop();
+}
+
+function shoot() {
+  if(Date.now() - game.lastShot < 150) return; // Mais rápido: 150ms
+  game.lastShot = Date.now();
+  playShoot();
+
+  if(game.player.doubleShot) {
+    game.bullets.push({
+      x: game.player.x + game.player.w/2 - 12,
+      y: game.player.y,
+      w: 16, h: 16, speed: 12, // Tiro mais rápido: 12
+      emoji: '💗'
+    });
+    game.bullets.push({
+      x: game.player.x + game.player.w/2 + 4,
+      y: game.player.y,
+      w: 16, h: 16, speed: 12,
+      emoji: '💗'
+    });
+  } else {
+    game.bullets.push({
+      x: game.player.x + game.player.w/2 - 8,
+      y: game.player.y,
+      w: 16, h: 16, speed: 12,
+      emoji: '💗'
+    });
+  }
+}
+
+function spawnEnemy() {
+  const emojis = ['💔','😡','🤬','👿'];
+  game.enemies.push({
+    x: Math.random() * (canvas.width - 30),
+    y: -30, w: 30, h: 30,
+    speed: game.enemySpeed + Math.random() * 0.4,
+    emoji: emojis[Math.floor(Math.random() * emojis.length)]
+  });
+}
+
+function spawnPowerup() {
+  const types = ['🌸', '💎', '⭐'];
+  const type = types[Math.floor(Math.random() * types.length)];
+  game.powerups.push({
+    x: Math.random() * (canvas.width - 25),
+    y: -25, w: 25, h: 25,
+    speed: 1.5,
+    emoji: type,
+    type: type
+  });
+}
+
+function spawnBoss() {
+  playBossSpawn();
+  game.boss = {
+    x: canvas.width/2 - 40,
+    y: 70,
+    w: 80, h: 80,
+    hp: 10, maxHp: 10,
+    speed: 1.5,
+    dir: 1,
+    lastShot: 0,
+    emoji: '👹💀'
+  };
+  bossHpEl.style.display = 'block';
+  updateBossHp();
+}
+
+function updateUI() {
+  scoreEl.textContent = `💕 SCORE: ${game.score}`;
+  livesEl.textContent = `💖 VIDAS: ${'♥'.repeat(Math.max(0,game.lives))}`;
+  let status = '';
+  if(game.player.invincible) status += '⭐ INVENCÍVEL ';
+  if(game.player.doubleShot) status += '💎 TIRO DUPLO';
+  powerupStatusEl.textContent = status;
+}
+
+function updateBossHp() {
+  if(game.boss) {
+    const pct = (game.boss.hp / game.boss.maxHp) * 100;
+    bossBarFill.style.width = pct + '%';
+  }
+}
+
+function createParticles(x, y, color = '#ff9ec7') {
+  const colors = [color, '#ffaedc', '#ffcce6', '#ffb3d9'];
+  for(let i = 0; i < 10; i++) {
+    game.particles.push({
+      x, y,
+      vx: (Math.random() - 0.5) * 4,
+      vy: (Math.random() - 0.5) * 4,
+      life: 20,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      size: Math.random() * 3 + 2
+    });
+  }
+}
+
+function update() {
+  if(!game.running) return;
+
+  // Auto-fire loop
+  if(game.player.autoFire || game.touchFire || game.keys[' ']) {
+    shoot();
+  }
+
+  // Atualiza power-ups ativos
+  if(game.player.invincible && Date.now() > game.player.invincibleEnd) {
+    game.player.invincible = false;
+    updateUI();
+  }
+  if(game.player.doubleShot && Date.now() > game.player.doubleShotEnd) {
+    game.player.doubleShot = false;
+    updateUI();
+  }
+
+  // Movimento player
+  if(game.keys['arrowleft'] || game.keys['a'] || game.touchLeft) {
+    game.player.x = Math.max(0, game.player.x - game.player.speed);
+  }
+  if(game.keys['arrowright'] || game.keys['d'] || game.touchRight) {
+    game.player.x = Math.min(canvas.width - game.player.w, game.player.x + game.player.speed);
+  }
+
+  // Bullets player
+  game.bullets = game.bullets.filter(b => {
+    b.y -= b.speed;
+    return b.y > -b.h;
+  });
+
+  // Spawn inimigos
+  if(!game.boss && Date.now() - game.lastEnemy > 1200) {
+    spawnEnemy();
+    game.lastEnemy = Date.now();
+  }
+
+  // Spawn powerup
+  if(Date.now() - game.lastPowerup > 6000 && Math.random() < 0.4) {
+    spawnPowerup();
+    game.lastPowerup = Date.now();
+  }
+
+  // Spawn boss
+  if(!game.boss && game.score >= game.nextBossScore) {
+    spawnBoss();
+    game.enemies = [];
+  }
+
+  // Update boss
+  if(game.boss) {
+    game.boss.x += game.boss.speed * game.boss.dir;
+    if(game.boss.x <= 0 || game.boss.x >= canvas.width - game.boss.w) {
+      game.boss.dir *= -1;
+    }
+
+    if(Date.now() - game.boss.lastShot > 1200) {
+      game.boss.lastShot = Date.now();
+      game.bossBullets.push({
+        x: game.boss.x + game.boss.w/2 - 8,
+        y: game.boss.y + game.boss.h,
+        w: 16, h: 16, speed: 3.5,
+        emoji: '💔'
+      });
+    }
+  }
+
+  // Boss bullets
+  game.bossBullets = game.bossBullets.filter(b => {
+    b.y += b.speed;
+    if(!game.player.invincible &&
+       b.y + b.h > game.player.y &&
+       b.x < game.player.x + game.player.w &&
+       b.x + b.w > game.player.x) {
+      createParticles(game.player.x + game.player.w/2, game.player.y, '#ff0080');
+      game.lives--;
+      playDamage();
+      updateUI();
+      if(game.lives <= 0) gameOver();
+      return false;
+    }
+    return b.y < canvas.height;
+  });
+
+  // Powerups
+  game.powerups = game.powerups.filter(p => {
+    p.y += p.speed;
+    if(p.y + p.h > game.player.y &&
+       p.x < game.player.x + game.player.w &&
+       p.x + p.w > game.player.x) {
+
+      playPowerup();
+      if(p.type === '🌸') {
+        game.lives++;
+        createParticles(p.x + p.w/2, p.y + p.h/2, '#ff9ec7');
+      } else if(p.type === '💎') {
+        game.player.doubleShot = true;
+        game.player.doubleShotEnd = Date.now() + 8000;
+        createParticles(p.x + p.w/2, p.y + p.h/2, '#00f0ff');
+      } else if(p.type === '⭐') {
+        game.player.invincible = true;
+        game.player.invincibleEnd = Date.now() + 3000;
+        createParticles(p.x + p.w/2, p.y + p.h/2, '#ffd700');
+      }
+
+      updateUI();
+      return false;
+    }
+    return p.y < canvas.height;
+  });
+
+  // Enemies
+  game.enemies = game.enemies.filter(e => {
+    e.y += e.speed;
+    if(!game.player.invincible &&
+       e.y + e.h > game.player.y &&
+       e.x < game.player.x + game.player.w &&
+       e.x + e.w > game.player.x) {
+      createParticles(game.player.x + game.player.w/2, game.player.y, '#ff0080');
+      game.lives--;
+      playDamage();
+      updateUI();
+      if(game.lives <= 0) gameOver();
+      return false;
+    }
+    if(e.y > canvas.height - 80) {
+      game.lives--;
+      playDamage();
+      updateUI();
+      if(game.lives <= 0) gameOver();
+      return false;
+    }
+    return true;
+  });
+
+  // Colisão bullets
+  game.bullets = game.bullets.filter(b => {
+    if(game.boss) {
+      if(b.x < game.boss.x + game.boss.w && b.x + b.w > game.boss.x &&
+         b.y < game.boss.y + game.boss.h && b.y + b.h > game.boss.y) {
+        game.boss.hp--;
+        createParticles(game.boss.x + game.boss.w/2, game.boss.y + game.boss.h/2, '#ff0080');
+        updateBossHp();
+        if(game.boss.hp <= 0) {
+          playBossDead();
+          createParticles(game.boss.x + game.boss.w/2, game.boss.y + game.boss.h/2, '#ff9ec7');
+          game.score += 50;
+          game.boss = null;
+          bossHpEl.style.display = 'none';
+          game.nextBossScore += 300;
+        }
+        return false;
+      }
+    }
+
+    for(let i = game.enemies.length - 1; i >= 0; i--) {
+      const e = game.enemies[i];
+      if(b.x < e.x + e.w && b.x + b.w > e.x &&
+         b.y < e.y + e.h && b.y + b.h > e.y) {
+        createParticles(e.x + e.w/2, e.y + e.h/2, '#0ff');
+        game.enemies.splice(i, 1);
+        game.score += 10;
+        game.enemySpeed += 0.01;
+        updateUI();
+        return false;
+      }
+    }
+    return true;
+  });
+
+  // Partículas
+  game.particles = game.particles.filter(p => {
+    p.x += p.vx;
+    p.y += p.vy;
+    p.life--;
+    return p.life > 0;
+  });
+}
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Estrelas fofas
+  ctx.fillStyle = 'rgba(255,158,199,0.4)';
+  for(let i = 0; i < 40; i++) {
+    const x = (i * 37) % canvas.width;
+    const y = (i * 73) % canvas.height;
+    ctx.beginPath();
+    ctx.arc(x, y, 1, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Player
+  ctx.shadowBlur = game.player.invincible? 35 : 20;
+  ctx.shadowColor = game.player.invincible? '#ffd700' : '#ff9ec7';
+  ctx.font = '30px Arial';
+  ctx.textAlign = 'center';
+  ctx.fillText('💖', game.player.x + game.player.w/2, game.player.y + game.player.h);
+
+  if(game.player.invincible) {
+    ctx.shadowBlur = 25;
+    ctx.strokeStyle = '#ffd700';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(game.player.x + game.player.w/2, game.player.y + game.player.h/2, 25, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+
+  // Bullets
+  ctx.shadowColor = '#ff9ec7';
+  ctx.font = '16px Arial';
+  game.bullets.forEach(b => {
+    ctx.fillText(b.emoji, b.x + b.w/2, b.y + b.h);
+  });
+
+  // Boss bullets
+  ctx.shadowColor = '#ff0080';
+  game.bossBullets.forEach(b => {
+    ctx.fillText(b.emoji, b.x + b.w/2, b.y + b.h);
+  });
+
+  // Enemies
+  ctx.shadowColor = '#ff6b9d';
+  ctx.font = '26px Arial';
+  game.enemies.forEach(e => {
+    ctx.fillText(e.emoji, e.x + e.w/2, e.y + e.h);
+  });
+
+  // Boss
+  if(game.boss) {
+    ctx.shadowColor = '#ff0080';
+    ctx.font = '60px Arial';
+    ctx.fillText(game.boss.emoji, game.boss.x + game.boss.w/2, game.boss.y + game.boss.h);
+  }
+
+  // Powerups
+  ctx.shadowColor = '#ff9ec7';
+  ctx.font = '26px Arial';
+  game.powerups.forEach(p => {
+    ctx.fillText(p.emoji, p.x + p.w/2, p.y + p.h);
+  });
+
+  // Partículas
+  game.particles.forEach(p => {
+    ctx.shadowBlur = 8;
+    ctx.shadowColor = p.color;
+    ctx.fillStyle = p.color;
+    ctx.globalAlpha = p.life / 20;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+  });
+
+  ctx.shadowBlur = 0;
+}
+
+function gameOver() {
+  game.running = false;
+  stopBgMusic();
+  controls.style.display = 'none';
+  bossHpEl.style.display = 'none';
+  finalScoreEl.textContent = `SCORE FINAL: ${game.score} 💕`;
+  endTitleEl.textContent = 'GAMER OVER 💔';
+  gameOverScreen.style.display = 'flex';
+}
+
+function loop() {
+  if(!game.running) return;
+  update();
+  draw();
+  requestAnimationFrame(loop);
+}
+</script>
+</body>
+</html>

@@ -156,6 +156,7 @@
 </div>
 
 <script>
+// === AUDIO ===
 let audioCtx = null, sfxGain, musicGain, musicPlaying = false, isMuted = false;
 let musicTimer, animationId = null;
 
@@ -264,6 +265,7 @@ function toggleMute() {
   if (musicGain) musicGain.gain.value = isMuted? 0 : 0.15;
 }
 
+// === GAME ===
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 const scoreEl = document.getElementById('score');
@@ -483,7 +485,7 @@ function activatePowerUp(type) {
     }
   } else if (type === 'W') {
     game.paddle.w = 120;
-    setTimeout(() => { game.paddle.w = 80; }, 8000);
+    setTimeout(() => { if(game) game.paddle.w = 80; }, 8000);
   } else if (type === 'M') {
     if (game.balls.length < 3) {
       const b = game.balls[0];
@@ -658,4 +660,4 @@ function update() {
         return false;
       }
     }
-    if (game.boss &&!game.boss.dead && l.x > game.boss.x && l.x < game.boss.x + game.boss.w && l.y > game.boss.y && l.y < game
+    if (game.boss &&!game.boss.dead && l.x > game.boss.x && l.x < game.boss.x + game.boss.w && l.y > game.boss

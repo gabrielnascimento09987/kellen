@@ -194,7 +194,7 @@
   </div>
   <div id="menu">
     <div class="title">CYBER BREAKER</div>
-    <div class="subtitle">Neo Protocol v4.2</div>
+    <div class="subtitle">Chiptune Core v4.3</div>
     <div class="subtitle">A/D ou ◀▶ | L = Laser | M = Multiball</div>
     <button id="start">ENTER</button>
   </div>
@@ -218,10 +218,10 @@ c.height = 640;
 
 let game = null;
 let leftPressed = false, rightPressed = false;
-let audioCtx = null, isMuted = false, musicOn = true; // Música ligada por padrão
+let audioCtx = null, isMuted = false, musicOn = true;
 let musicNodes = null, autoLaunchTimer = null;
 
-// === AUDIO ===
+// === AUDIO 8-BIT ===
 function initAudio() {
   if (!audioCtx) {
     try {
@@ -231,7 +231,7 @@ function initAudio() {
   if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
 }
 
-function beep(freq, dur, vol = 0.15, type = 'sine') {
+function beep(freq, dur, vol = 0.15, type = 'square') {
   if (!audioCtx || isMuted) return;
   const osc = audioCtx.createOscillator();
   const gain = audioCtx.createGain();
@@ -245,38 +245,29 @@ function beep(freq, dur, vol = 0.15, type = 'sine') {
   osc.stop(audioCtx.currentTime + dur);
 }
 
-function playHit() { beep(300, 0.03); }
-function playBreak() { beep(200, 0.05); }
-function playDamage() { beep(100, 0.15, 0.2, 'sawtooth'); }
-function playLaser() { beep(600, 0.05, 0.1); }
-function playPowerUp() { beep(400, 0.1); setTimeout(() => beep(600, 0.1), 60); }
+function playHit() { beep(300, 0.03, 0.1, 'square'); }
+function playBreak() { beep(200, 0.05, 0.12, 'square'); }
+function playDamage() { beep(100, 0.15, 0.15, 'square'); }
+function playLaser() { beep(600, 0.05, 0.08, 'square'); }
+function playPowerUp() { beep(400, 0.08, 0.1, 'square'); setTimeout(() => beep(600, 0.08, 0.1, 'square'), 60); }
 
-// Nova trilha synthwave v2 - mais cyberpunk
+// Chiptune Engine
 function startMusic() {
   if (!audioCtx || musicNodes ||!musicOn) return;
   const masterGain = audioCtx.createGain();
-  masterGain.gain.value = 0.07;
+  masterGain.gain.value = 0.08;
   masterGain.connect(audioCtx.destination);
 
-  // Bass pulsante
+  // Canal 1: Bass
   const bass = audioCtx.createOscillator();
   const bassGain = audioCtx.createGain();
-  bass.type = 'sawtooth';
-  bass.frequency.value = 49; // G1
-  bassGain.gain.value = 0.35;
+  bass.type = 'square';
+  bass.frequency.value = 98; // G2
+  bassGain.gain.value = 0.25;
   bass.connect(bassGain).connect(masterGain);
   bass.start();
 
-  // Pad ambiente
-  const pad = audioCtx.createOscillator();
-  const padGain = audioCtx.createGain();
-  pad.type = 'triangle';
-  pad.frequency.value = 196; // G3
-  padGain.gain.value = 0.1;
-  pad.connect(padGain).connect(masterGain);
-  pad.start();
-
-  // Lead arp nova sequência
+  // Canal 2: Lead
   const lead = audioCtx.createOscillator();
   const leadGain = audioCtx.createGain();
   lead.type = 'square';
@@ -284,31 +275,60 @@ function startMusic() {
   lead.connect(leadGain).connect(masterGain);
   lead.start();
 
-  const notes = [196, 247, 294, 392, 294, 247, 196, 175]; // G3, B3, D4, G4
-  let noteIndex = 0;
+  // Canal 3: Noise/Hi-hat
+  const noise = audioCtx.createBufferSource();
+  const noiseGain = audioCtx.createGain();
+  const bufferSize = audioCtx.sampleRate * 2;
+  const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let i = 0; i < bufferSize; i++) {
+    data[i] = Math.random() * 2 - 1;
+  }
+  noise.buffer = buffer;
+  noise.loop = true;
+  noiseGain.gain.value = 0;
+  noise.connect(noiseGain).connect(masterGain);
+  noise.start();
 
-  const arpLoop = setInterval(() => {
+  // G Maior: G-A-B-G-E-D-E-G
+  const notes = [392, 440, 494, 392, 330, 294, 330, 392];
+  let noteIndex = 0;
+  let beat = 0;
+
+  const seqLoop = setInterval(() => {
     if (!musicOn ||!audioCtx) {
-      clearInterval(arpLoop);
+      clearInterval(seqLoop);
       return;
     }
+
     lead.frequency.setValueAtTime(notes[noteIndex], audioCtx.currentTime);
     leadGain.gain.cancelScheduledValues(audioCtx.currentTime);
-    leadGain.gain.setValueAtTime(0.12, audioCtx.currentTime);
-    leadGain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.12);
-    noteIndex = (noteIndex + 1) % notes.length;
-  }, 180);
+    leadGain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+    leadGain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
 
-  musicNodes = { bass, pad, lead, masterGain, arpLoop };
+    if (beat % 2 === 1) {
+      noiseGain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+      noiseGain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.03);
+    }
+
+    if (beat % 4 === 0) {
+      bass.frequency.setValueAtTime(notes[noteIndex] / 4, audioCtx.currentTime);
+    }
+
+    noteIndex = (noteIndex + 1) % notes.length;
+    beat++;
+  }, 220);
+
+  musicNodes = { bass, lead, noise, masterGain, seqLoop };
 }
 
 function stopMusic() {
   if (musicNodes) {
-    clearInterval(musicNodes.arpLoop);
+    clearInterval(musicNodes.seqLoop);
     try {
       musicNodes.bass.stop();
-      musicNodes.pad.stop();
       musicNodes.lead.stop();
+      musicNodes.noise.stop();
     } catch(e) {}
     musicNodes = null;
   }
@@ -331,7 +351,7 @@ musicBtn.onclick = () => {
 
 document.getElementById('start').onclick = () => {
   initAudio();
-  if (musicOn) startMusic(); // Auto-start da música
+  if (musicOn) startMusic();
   menu.style.display = 'none';
   controls.style.display = 'block';
   startGame();

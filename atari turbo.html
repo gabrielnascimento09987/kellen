@@ -55,11 +55,11 @@
     letter-spacing: 1px;
   }
 .ui-card {
-    background: rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.05);
     backdrop-filter: blur(12px);
     padding: 6px 12px;
     border-radius: 8px;
-    border: 1px solid rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.08);
   }
 .ui-card span {
     background: linear-gradient(90deg, #00ffff, #ff00ff);
@@ -70,7 +70,7 @@
   #bossHp {
     position: absolute; top: 55px; left: 50%; transform: translateX(-50%);
     width: 200px; height: 8px; display: none;
-    background: rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.08);
     border-radius: 10px;
     overflow: hidden;
     z-index: 10;
@@ -112,8 +112,8 @@
     text-transform: uppercase;
   }
   button {
-    background: rgba(0,255,255,0.1);
-    border: 1px solid rgba(0,255,255,0.5);
+    background: rgba(0,255,255,0.08);
+    border: 1px solid rgba(0,255,255,0.3);
     color: #fff;
     padding: 12px 32px;
     font-family: inherit;
@@ -127,8 +127,8 @@
     letter-spacing: 1px;
   }
   button:hover {
-    background: rgba(0,255,255,0.2);
-    box-shadow: 0 0 20px rgba(0,255,255,0.4);
+    background: rgba(0,255,255,0.15);
+    box-shadow: 0 0 20px rgba(0,255,255,0.3);
     transform: translateY(-2px);
   }
   button:active { transform: translateY(0); }
@@ -138,26 +138,26 @@
   }
 .btn {
     position: absolute; width: 90px; height: 45px;
-    background: rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.04);
     backdrop-filter: blur(15px);
-    border: 1px solid rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.1);
     border-radius: 12px;
     bottom: 15px; display: flex; align-items: center; justify-content: center;
-    font-size: 20px; user-select: none; color: #fff;
+    font-size: 20px; user-select: none; color: rgba(255,255,255,0.8);
     transition: all 0.1s;
   }
 .btn:active {
-    background: rgba(0,255,255,0.2);
+    background: rgba(0,255,255,0.15);
     transform: scale(0.95);
   }
   #left { left: 20px; }
   #right { right: 20px; }
   #mute {
     position: absolute; top: 15px; right: 15px; z-index: 15;
-    background: rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.04);
     backdrop-filter: blur(10px);
-    border: 1px solid rgba(255,255,255,0.1);
-    color: #fff;
+    border: 1px solid rgba(255,255,255,0.08);
+    color: rgba(255,255,255,0.8);
     width: 32px; height: 32px;
     border-radius: 8px;
     font-size: 14px; cursor: pointer;
@@ -165,9 +165,9 @@
   }
   #music {
     position: absolute; top: 15px; right: 55px; z-index: 15;
-    background: rgba(255,255,255,0.08);
+    background: rgba(0,255,255,0.15);
     backdrop-filter: blur(10px);
-    border: 1px solid rgba(255,255,255,0.1);
+    border: 1px solid rgba(0,255,255,0.3);
     color: #fff;
     width: 32px; height: 32px;
     border-radius: 8px;
@@ -180,7 +180,7 @@
 <div id="game">
   <div id="bg"></div>
   <canvas id="c"></canvas>
-  <button id="music">♫</button>
+  <button id="music">◼</button>
   <button id="mute">♪</button>
   <div id="ui">
     <div class="ui-card">SCORE <span id="s">0</span></div>
@@ -194,7 +194,7 @@
   </div>
   <div id="menu">
     <div class="title">CYBER BREAKER</div>
-    <div class="subtitle">Neo Protocol v4.1</div>
+    <div class="subtitle">Neo Protocol v4.2</div>
     <div class="subtitle">A/D ou ◀▶ | L = Laser | M = Multiball</div>
     <button id="start">ENTER</button>
   </div>
@@ -218,7 +218,7 @@ c.height = 640;
 
 let game = null;
 let leftPressed = false, rightPressed = false;
-let audioCtx = null, isMuted = false, musicOn = false;
+let audioCtx = null, isMuted = false, musicOn = true; // Música ligada por padrão
 let musicNodes = null, autoLaunchTimer = null;
 
 // === AUDIO ===
@@ -251,28 +251,40 @@ function playDamage() { beep(100, 0.15, 0.2, 'sawtooth'); }
 function playLaser() { beep(600, 0.05, 0.1); }
 function playPowerUp() { beep(400, 0.1); setTimeout(() => beep(600, 0.1), 60); }
 
+// Nova trilha synthwave v2 - mais cyberpunk
 function startMusic() {
   if (!audioCtx || musicNodes ||!musicOn) return;
   const masterGain = audioCtx.createGain();
-  masterGain.gain.value = 0.08;
+  masterGain.gain.value = 0.07;
   masterGain.connect(audioCtx.destination);
 
+  // Bass pulsante
   const bass = audioCtx.createOscillator();
   const bassGain = audioCtx.createGain();
   bass.type = 'sawtooth';
-  bass.frequency.value = 55;
-  bassGain.gain.value = 0.3;
+  bass.frequency.value = 49; // G1
+  bassGain.gain.value = 0.35;
   bass.connect(bassGain).connect(masterGain);
   bass.start();
 
-  const arp = audioCtx.createOscillator();
-  const arpGain = audioCtx.createGain();
-  arp.type = 'square';
-  arpGain.gain.value = 0;
-  arp.connect(arpGain).connect(masterGain);
-  arp.start();
+  // Pad ambiente
+  const pad = audioCtx.createOscillator();
+  const padGain = audioCtx.createGain();
+  pad.type = 'triangle';
+  pad.frequency.value = 196; // G3
+  padGain.gain.value = 0.1;
+  pad.connect(padGain).connect(masterGain);
+  pad.start();
 
-  const notes = [220, 277, 330, 277, 220, 196, 220, 277];
+  // Lead arp nova sequência
+  const lead = audioCtx.createOscillator();
+  const leadGain = audioCtx.createGain();
+  lead.type = 'square';
+  leadGain.gain.value = 0;
+  lead.connect(leadGain).connect(masterGain);
+  lead.start();
+
+  const notes = [196, 247, 294, 392, 294, 247, 196, 175]; // G3, B3, D4, G4
   let noteIndex = 0;
 
   const arpLoop = setInterval(() => {
@@ -280,14 +292,14 @@ function startMusic() {
       clearInterval(arpLoop);
       return;
     }
-    arp.frequency.setValueAtTime(notes[noteIndex], audioCtx.currentTime);
-    arpGain.gain.cancelScheduledValues(audioCtx.currentTime);
-    arpGain.gain.setValueAtTime(0.15, audioCtx.currentTime);
-    arpGain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+    lead.frequency.setValueAtTime(notes[noteIndex], audioCtx.currentTime);
+    leadGain.gain.cancelScheduledValues(audioCtx.currentTime);
+    leadGain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+    leadGain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.12);
     noteIndex = (noteIndex + 1) % notes.length;
-  }, 200);
+  }, 180);
 
-  musicNodes = { bass, arp, masterGain, arpLoop };
+  musicNodes = { bass, pad, lead, masterGain, arpLoop };
 }
 
 function stopMusic() {
@@ -295,7 +307,8 @@ function stopMusic() {
     clearInterval(musicNodes.arpLoop);
     try {
       musicNodes.bass.stop();
-      musicNodes.arp.stop();
+      musicNodes.pad.stop();
+      musicNodes.lead.stop();
     } catch(e) {}
     musicNodes = null;
   }
@@ -311,26 +324,24 @@ musicBtn.onclick = () => {
   initAudio();
   musicOn =!musicOn;
   musicBtn.textContent = musicOn? '◼' : '♫';
-  musicBtn.style.background = musicOn? 'rgba(0,255,255,0.2)' : 'rgba(255,255,255,0.08)';
+  musicBtn.style.background = musicOn? 'rgba(0,255,255,0.15)' : 'rgba(255,255,255,0.04)';
   if (musicOn) startMusic();
   else stopMusic();
 };
 
 document.getElementById('start').onclick = () => {
   initAudio();
-  if (musicOn) startMusic(); // Já toca se ♫ tiver ativo
+  if (musicOn) startMusic(); // Auto-start da música
   menu.style.display = 'none';
   controls.style.display = 'block';
   startGame();
 };
 
-// Touch controls
 document.getElementById('left').addEventListener('touchstart', e => { e.preventDefault(); leftPressed = true; });
 document.getElementById('left').addEventListener('touchend', e => { e.preventDefault(); leftPressed = false; });
 document.getElementById('right').addEventListener('touchstart', e => { e.preventDefault(); rightPressed = true; });
 document.getElementById('right').addEventListener('touchend', e => { e.preventDefault(); rightPressed = false; });
 
-// Keyboard corrigido: A/D + setas
 document.addEventListener('keydown', e => {
   const key = e.key.toLowerCase();
   if (key === 'arrowleft' || key === 'a') leftPressed = true;
@@ -343,7 +354,6 @@ document.addEventListener('keyup', e => {
   if (key === 'arrowright' || key === 'd') rightPressed = false;
 });
 
-// Evita tecla "presa" se trocar de aba
 window.addEventListener('blur', () => {
   leftPressed = false;
   rightPressed = false;

@@ -8,7 +8,7 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
     background: #000;
-    font-family: 'Courier New', 'Inter', monospace;
+    font-family: 'Inter', 'Segoe UI', sans-serif;
     color: #fff;
     overflow: hidden;
     display: flex;
@@ -25,8 +25,52 @@
     background: #000;
     border-radius: 20px;
     overflow: hidden;
-    box-shadow: 0 0 60px rgba(0, 255, 255, 0.4), 0 0 120px rgba(255, 0, 255, 0.2);
-  }
+    box-shadow:
+        0 0 60px rgba(0,255,255,0.4),
+        0 0 120px rgba(255,0,255,0.2);
+}
+
+#game::before{
+    content:'';
+    position:absolute;
+    inset:0;
+    pointer-events:none;
+    z-index:11;
+
+    background:
+    linear-gradient(
+        transparent 0%,
+        rgba(255,255,255,.04) 50%,
+        transparent 100%
+    );
+
+    opacity:0;
+    animation:screenGlitch 7s infinite;
+}
+
+@keyframes screenGlitch{
+    0%,94%,100%{
+        opacity:0;
+        transform:translateX(0);
+    }
+
+    95%{
+        opacity:1;
+        transform:translateX(-4px);
+    }
+
+    96%{
+        transform:translateX(4px);
+    }
+
+    97%{
+        transform:translateX(-2px);
+    }
+
+    98%{
+        transform:translateX(2px);
+    }
+}
   #bg {
     position: absolute;
     top: 0; left: 0; width: 100%; height: 100%;
@@ -41,87 +85,40 @@
     top: 0; left: 0; width: 100%; height: 100%;
     background: linear-gradient(180deg, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.1) 35%, rgba(0,0,0,0.1) 65%, rgba(0,0,0,0.9) 100%);
   }
-
-  /* SCANLINES CRT */
-  #scanlines {
-    position: absolute;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: repeating-linear-gradient(
-      0deg,
-      rgba(0, 0, 0, 0.15) 0px,
-      rgba(0, 0, 0, 0.15) 1px,
-      transparent 1px,
-      transparent 2px
-    );
-    pointer-events: none;
-    z-index: 3;
-    animation: scanlineMove 8s linear infinite;
-  }
-  @keyframes scanlineMove {
-    0% { transform: translateY(0); }
-    100% { transform: translateY(10px); }
-  }
-
-  /* RUÍDO CRT */
-  #crtNoise {
-    position: absolute;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><filter id="noise"><feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(%23noise)" opacity="0.02"/></svg>');
-    pointer-events: none;
-    z-index: 4;
-    opacity: 0.4;
-    animation: noiseFlicker 0.2s infinite;
-  }
-  @keyframes noiseFlicker {
-    0%, 100% { opacity: 0.4; }
-    50% { opacity: 0.3; }
-  }
-
-  /* VIGNETTE CRT */
-  #game::after {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: radial-gradient(ellipse at center, transparent 0%, rgba(0,0,0,0.4) 100%);
-    pointer-events: none;
-    z-index: 5;
-  }
-
   canvas {
     display: block;
     width: 100%;
     height: 100%;
     position: relative;
     z-index: 2;
-    filter: contrast(1.1) saturate(1.2);
   }
   #ui {
     position: absolute; top: 15px; left: 15px; right: 15px;
     display: flex; justify-content: space-between; align-items: center;
-    font-size: 12px; font-weight: 700; z-index: 10; pointer-events: none;
+    font-size: 13px; font-weight: 600; z-index: 10; pointer-events: none;
     letter-spacing: 1px;
-    text-shadow: 0 0 5px rgba(0,255,255,0.8), 2px 0 0 rgba(255,0,0,0.5), -2px 0 0 rgba(0,255,255,0.5);
   }
 .ui-card {
-    background: rgba(0,255,255,0.03);
+    background: rgba(255,255,255,0.05);
     backdrop-filter: blur(12px);
-    padding: 6px 10px;
-    border-radius: 4px;
-    border: 1px solid rgba(0,255,255,0.2);
+    padding: 6px 12px;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.08);
   }
 .ui-card span {
-    color: #0ff;
+    background: linear-gradient(90deg, #00ffff, #ff00ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
     font-weight: 700;
-    text-shadow: 0 0 8px #0ff;
   }
   #bossHp {
     position: absolute; top: 55px; left: 50%; transform: translateX(-50%);
     width: 200px; height: 8px; display: none;
-    background: rgba(255,0,255,0.1);
-    border-radius: 2px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 10px;
     overflow: hidden;
     z-index: 10;
-    border: 1px solid rgba(255,0,255,0.3);
+    backdrop-filter: blur(10px);
   }
   #bossHpBar {
     height: 100%;
@@ -131,88 +128,83 @@
   }
   #menu {
     position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.9);
+    background: rgba(0,0,0,0.85);
     backdrop-filter: blur(20px);
     display: flex; flex-direction: column; justify-content: center; align-items: center;
     z-index: 20; text-align: center;
   }
-.title {
-    font-size: 40px;
-    font-weight: 900;
-    color: #0ff;
-    margin-bottom: 8px;
-    letter-spacing: -2px;
+.title{
+    position:relative;
+    font-size:42px;
+    font-weight:800;
+    color:#00ffff;
+    margin-bottom:8px;
+    letter-spacing:-1px;
+
     text-shadow:
-      0 0 10px #0ff,
-      3px 0 0 rgba(255,0,0,0.7),
-      -3px 0 0 rgba(0,255,255,0.7),
-      0 0 20px #0ff;
-    animation: glitch 2s infinite;
-    position: relative;
-  }
-  @keyframes glitch {
-    0%, 100% { transform: translate(0); }
-    20% { transform: translate(-2px, 2px); }
-    40% { transform: translate(-2px, -2px); }
-    60% { transform: translate(2px, 2px); }
-    80% { transform: translate(2px, -2px); }
-  }
-.title::before,.title::after {
-    content: 'CYBER BREAKER';
-    position: absolute;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-  }
-.title::before {
-    color: #f0f;
-    z-index: -1;
-    animation: glitchBefore 3s infinite;
-  }
-.title::after {
-    color: #0ff;
-    z-index: -2;
-    animation: glitchAfter 2.5s infinite;
-  }
-  @keyframes glitchBefore {
-    0%, 100% { clip-path: inset(0 0 0 0); transform: translate(0); }
-    20% { clip-path: inset(20% 0 30% 0); transform: translate(-3px); }
-    40% { clip-path: inset(50% 0 20% 0); transform: translate(3px); }
-    60% { clip-path: inset(10% 0 60% 0); transform: translate(-2px); }
-  }
-  @keyframes glitchAfter {
-    0%, 100% { clip-path: inset(0 0 0 0); transform: translate(0); }
-    30% { clip-path: inset(60% 0 10% 0); transform: translate(2px); }
-    50% { clip-path: inset(20% 0 50% 0); transform: translate(-2px); }
-    70% { clip-path: inset(40% 0 30% 0); transform: translate(3px); }
-  }
+        -2px 0 #ff00ff,
+         2px 0 #00ffff,
+         0 0 20px #00ffff;
+}
+
+.title::before,
+.title::after{
+    content:attr(data-text);
+    position:absolute;
+    left:0;
+    top:0;
+}
+
+.title::before{
+    color:#ff00ff;
+    transform:translateX(-2px);
+    opacity:.7;
+}
+
+.title::after{
+    color:#00ffff;
+    transform:translateX(2px);
+    opacity:.7;
+}
+.title{
+    animation: arcadePulse 2s infinite;
+}
+
+@keyframes arcadePulse{
+    0%,100%{
+        filter:brightness(1);
+    }
+
+    50%{
+        filter:brightness(1.35);
+    }
+}
 .subtitle {
-    font-size: 10px;
-    color: rgba(0,255,255,0.7);
+    font-size: 11px;
+    color: rgba(255,255,255,0.6);
     margin: 4px 0;
-    letter-spacing: 3px;
+    letter-spacing: 2px;
     text-transform: uppercase;
-    text-shadow: 0 0 5px #0ff;
   }
   button {
-    background: rgba(0,255,255,0.05);
-    border: 2px solid #0ff;
-    color: #0ff;
+    background: rgba(0,255,255,0.08);
+    border: 1px solid rgba(0,255,255,0.3);
+    color: #fff;
     padding: 12px 32px;
-    font-family: 'Courier New', monospace;
-    font-size: 12px;
-    font-weight: 700;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
     cursor: pointer;
     margin-top: 25px;
-    border-radius: 2px;
-    transition: all 0.1s;
-    letter-spacing: 2px;
-    text-shadow: 0 0 8px #0ff;
-    box-shadow: 0 0 15px rgba(0,255,255,0.3), inset 0 0 15px rgba(0,255,255,0.1);
+    border-radius: 12px;
+    backdrop-filter: blur(10px);
+    transition: all 0.2s;
+    letter-spacing: 1px;
   }
   button:hover {
     background: rgba(0,255,255,0.15);
-    box-shadow: 0 0 25px rgba(0,255,255,0.6), inset 0 0 25px rgba(0,255,255,0.2);
-    transform: translateY(-1px);
+    box-shadow: 0 0 20px rgba(0,255,255,0.3);
+    transform: translateY(-2px);
   }
   button:active { transform: translateY(0); }
   #controls {
@@ -221,52 +213,75 @@
   }
 .btn {
     position: absolute; width: 90px; height: 45px;
-    background: rgba(0,255,255,0.03);
-    border: 2px solid rgba(0,255,255,0.3);
-    border-radius: 4px;
+    background: rgba(255,255,255,0.04);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
     bottom: 15px; display: flex; align-items: center; justify-content: center;
-    font-size: 20px; user-select: none; color: rgba(0,255,255,0.8);
+    font-size: 20px; user-select: none; color: rgba(255,255,255,0.8);
     transition: all 0.1s;
-    text-shadow: 0 0 8px #0ff;
-    box-shadow: 0 0 10px rgba(0,255,255,0.2);
   }
 .btn:active {
-    background: rgba(0,255,255,0.2);
+    background: rgba(0,255,255,0.15);
     transform: scale(0.95);
-    box-shadow: 0 0 20px rgba(0,255,255,0.5);
   }
   #left { left: 20px; }
   #right { right: 20px; }
   #mute {
     position: absolute; top: 15px; right: 15px; z-index: 15;
-    background: rgba(0,255,255,0.03);
-    border: 1px solid rgba(0,255,255,0.3);
-    color: rgba(0,255,255,0.8);
+    background: rgba(255,255,255,0.04);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: rgba(255,255,255,0.8);
     width: 32px; height: 32px;
-    border-radius: 2px;
+    border-radius: 8px;
     font-size: 14px; cursor: pointer;
     display: flex; align-items: center; justify-content: center;
-    text-shadow: 0 0 5px #0ff;
   }
   #music {
     position: absolute; top: 15px; right: 55px; z-index: 15;
     background: rgba(0,255,255,0.15);
-    border: 1px solid #0ff;
-    color: #0ff;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(0,255,255,0.3);
+    color: #fff;
     width: 32px; height: 32px;
-    border-radius: 2px;
+    border-radius: 8px;
     font-size: 14px; cursor: pointer;
     display: flex; align-items: center; justify-content: center;
-    text-shadow: 0 0 8px #0ff;
-    box-shadow: 0 0 10px rgba(0,255,255,0.4);
   }
+#crt{
+    position:absolute;
+    inset:0;
+    pointer-events:none;
+    z-index:9;
+
+    background:
+    repeating-linear-gradient(
+        to bottom,
+        rgba(255,255,255,0.03) 0px,
+        rgba(255,255,255,0.03) 1px,
+        transparent 2px,
+        transparent 4px
+    );
+
+    mix-blend-mode:overlay;
+    animation:scanMove 8s linear infinite;
+}
+
+@keyframes scanMove{
+    from{
+        transform:translateY(0);
+    }
+    to{
+        transform:translateY(4px);
+    }
+}
 </style>
 </head>
 <body>
 <div id="game">
   <div id="bg"></div>
-  <div id="scanlines"></div>
-  <div id="crtNoise"></div>
+  <div id="crt"></div>
   <canvas id="c"></canvas>
   <button id="music">◼</button>
   <button id="mute">♪</button>
@@ -281,8 +296,10 @@
     <div class="btn" id="right">▶</div>
   </div>
   <div id="menu">
-    <div class="title">CYBER BREAKER</div>
-    <div class="subtitle">Chiptune Core v4.5</div>
+    <div class="title" data-text="CYBER BREAKER">
+    CYBER BREAKER
+</div>
+    <div class="subtitle">Chiptune Core v4.3</div>
     <div class="subtitle">A/D ou ◀▶ | L = Laser | M = Multiball</div>
     <button id="start">ENTER</button>
   </div>
@@ -309,6 +326,7 @@ let leftPressed = false, rightPressed = false;
 let audioCtx = null, isMuted = false, musicOn = true;
 let musicNodes = null, autoLaunchTimer = null;
 
+// === AUDIO 8-BIT ===
 function initAudio() {
   if (!audioCtx) {
     try {
@@ -338,20 +356,23 @@ function playDamage() { beep(100, 0.15, 0.15, 'square'); }
 function playLaser() { beep(600, 0.05, 0.08, 'square'); }
 function playPowerUp() { beep(400, 0.08, 0.1, 'square'); setTimeout(() => beep(600, 0.08, 0.1, 'square'), 60); }
 
+// Chiptune Engine
 function startMusic() {
   if (!audioCtx || musicNodes ||!musicOn) return;
   const masterGain = audioCtx.createGain();
   masterGain.gain.value = 0.08;
   masterGain.connect(audioCtx.destination);
 
+  // Canal 1: Bass
   const bass = audioCtx.createOscillator();
   const bassGain = audioCtx.createGain();
   bass.type = 'square';
-  bass.frequency.value = 98;
+  bass.frequency.value = 98; // G2
   bassGain.gain.value = 0.25;
   bass.connect(bassGain).connect(masterGain);
   bass.start();
 
+  // Canal 2: Lead
   const lead = audioCtx.createOscillator();
   const leadGain = audioCtx.createGain();
   lead.type = 'square';
@@ -359,6 +380,7 @@ function startMusic() {
   lead.connect(leadGain).connect(masterGain);
   lead.start();
 
+  // Canal 3: Noise/Hi-hat
   const noise = audioCtx.createBufferSource();
   const noiseGain = audioCtx.createGain();
   const bufferSize = audioCtx.sampleRate * 2;
@@ -373,6 +395,7 @@ function startMusic() {
   noise.connect(noiseGain).connect(masterGain);
   noise.start();
 
+  // G Maior: G-A-B-G-E-D-E-G
   const notes = [392, 440, 494, 392, 330, 294, 330, 392];
   let noteIndex = 0;
   let beat = 0;
@@ -613,7 +636,13 @@ function gameOver(victory) {
   stopMusic();
   setTimeout(() => {
     menu.style.display = 'flex';
-    menu.querySelector('.title').textContent = victory? 'VICTORY' : 'GAME OVER';
+    const title = menu.querySelector('.title');
+
+title.textContent = victory ? 'VICTORY' : 'GAME OVER';
+title.setAttribute(
+    'data-text',
+    victory ? 'VICTORY' : 'GAME OVER'
+);
     menu.querySelector('.subtitle').textContent = `FINAL SCORE: ${game.score}`;
   }, 300);
 }
@@ -836,3 +865,111 @@ function draw() {
     ctx.fillRect(b.x, b.y, b.w, 3);
     ctx.fillStyle = 'rgba(255,255,255,0.2)';
     ctx.fillRect(b.x, b.y, 2, b.h);
+
+    ctx.shadowColor = b.color;
+    ctx.shadowBlur = 12;
+    ctx.strokeStyle = b.color;
+    ctx.lineWidth = 1;
+    ctx.strokeRect(b.x, b.y, b.w, b.h);
+    ctx.shadowBlur = 0;
+
+    if (b.hp > 1) {
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 8px sans-serif';
+      ctx.fillText(b.hp, b.x + b.w / 2 - 2, b.y + b.h / 2 + 3);
+    }
+  });
+
+  if (game.boss && game.boss.alive) {
+    const grad = ctx.createLinearGradient(game.boss.x, game.boss.y, game.boss.x, game.boss.y + game.boss.h);
+    grad.addColorStop(0, '#ff00ff');
+    grad.addColorStop(0.5, '#cc00cc');
+    grad.addColorStop(1, '#880088');
+    ctx.shadowColor = '#ff00ff';
+    ctx.shadowBlur = 30;
+    ctx.fillStyle = grad;
+    ctx.fillRect(game.boss.x, game.boss.y, game.boss.w, game.boss.h);
+    ctx.shadowBlur = 0;
+
+    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+    ctx.fillRect(game.boss.x, game.boss.y, game.boss.w, 4);
+  }
+
+  game.powerups.forEach(p => {
+    ctx.fillStyle = p.color + '40';
+    ctx.shadowColor = p.color;
+    ctx.shadowBlur = 20;
+    ctx.fillRect(p.x, p.y, p.w, p.h);
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 10px sans-serif';
+    ctx.fillText(p.type, p.x + 8, p.y + 9);
+  });
+
+  ctx.shadowColor = '#ff8800';
+  ctx.shadowBlur = 10;
+  ctx.fillStyle = '#ff8800';
+  game.lasers.forEach(l => {
+    ctx.fillRect(l.x, l.y, l.w, l.h);
+  });
+  ctx.shadowBlur = 0;
+
+  const paddleGrad = ctx.createLinearGradient(game.paddle.x, game.paddle.y, game.paddle.x, game.paddle.y + game.paddle.h);
+  paddleGrad.addColorStop(0, '#00ffff');
+  paddleGrad.addColorStop(1, '#0088ff');
+  ctx.shadowColor = '#00ffff';
+  ctx.shadowBlur = 20;
+  ctx.fillStyle = paddleGrad;
+  ctx.fillRect(game.paddle.x, game.paddle.y, game.paddle.w, game.paddle.h);
+  ctx.shadowBlur = 0;
+  ctx.fillStyle = 'rgba(255,255,255,0.6)';
+  ctx.fillRect(game.paddle.x, game.paddle.y, game.paddle.w, 2);
+
+  game.balls.forEach(ball => {
+    ball.trail.forEach((pos, i) => {
+      const alpha = i / ball.trail.length * 0.5;
+      ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+      ctx.beginPath();
+      ctx.arc(pos.x, pos.y, ball.r * (i / ball.trail.length), 0, Math.PI * 2);
+      ctx.fill();
+    });
+
+    ctx.shadowColor = '#fff';
+    ctx.shadowBlur = 20;
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+  });
+
+  game.particles.forEach(p => {
+    ctx.fillStyle = p.color;
+    ctx.globalAlpha = p.life / 30;
+    ctx.fillRect(p.x, p.y, p.size, p.size);
+});
+
+ctx.globalAlpha = 1;
+
+/* CRT Chromatic Aberration */
+
+ctx.globalCompositeOperation = 'screen';
+
+ctx.fillStyle = 'rgba(255,0,255,0.02)';
+ctx.fillRect(-1,0,c.width,c.height);
+
+ctx.fillStyle = 'rgba(0,255,255,0.02)';
+ctx.fillRect(1,0,c.width,c.height);
+
+ctx.globalCompositeOperation = 'source-over';
+}
+
+function loop() {
+  if (!game ||!game.running) return;
+  update();
+  draw();
+  requestAnimationFrame(loop);
+}
+</script>
+</body>
+</html>
